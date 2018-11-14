@@ -1,0 +1,230 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>birdspotter package &#8212; BirdSpotter 0.1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="birdspotter-package">
+<h1>birdspotter package<a class="headerlink" href="#birdspotter-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-birdspotter.BirdSpotter">
+<span id="birdspotter-birdspotter-module"></span><h2>birdspotter.BirdSpotter module<a class="headerlink" href="#module-birdspotter.BirdSpotter" title="Permalink to this headline">¶</a></h2>
+<p>BirdSpotter is a module which provides an influence and bot detection toolkit for twitter.</p>
+<dl class="class">
+<dt id="birdspotter.BirdSpotter.BirdSpotter">
+<em class="property">class </em><code class="descclassname">birdspotter.BirdSpotter.</code><code class="descname">BirdSpotter</code><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Influence and Bot Detection toolkit for twitter dumps.</p>
+<p>This module takes a twitter json dump and extract metrics bot and influence metrics for the users.
+It requires a a labelled dataset of bots to do bot detection. It exposes processed data from the tweet dumps.</p>
+<dl class="method">
+<dt id="birdspotter.BirdSpotter.BirdSpotter.composeData">
+<code class="descname">composeData</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.composeData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds botness column to the cascade dataframe. Exposes composedDataframe through module.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="birdspotter.BirdSpotter.BirdSpotter.extractTweets">
+<code class="descname">extractTweets</code><span class="sig-paren">(</span><em>filePath</em>, <em>tweetLimit=None</em>, <em>embeddings=None</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.extractTweets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts tweets from a json dump into a pandas dataframe.</p>
+<dl class="docutils">
+<dt>filePath <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>The path to the json twitter dump, to be loaded.</dd>
+<dt>tweetLimit <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Sets a limit on the number of tweets read.</dd>
+<dt>embeddings <span class="classifier-delimiter">:</span> <span class="classifier">dict or str</span></dt>
+<dd>Either a python mapping object or a path to a pickle or glove text file of the w2v embeddings</dd>
+</dl>
+<dl class="docutils">
+<dt>Dataframe</dt>
+<dd>A dataframe of the features for each user</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="birdspotter.BirdSpotter.BirdSpotter.getBotAnnotationTemplate">
+<code class="descname">getBotAnnotationTemplate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.getBotAnnotationTemplate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes a CSV with the list of users and a blank column “isbot” to be annotated.</p>
+<p>A helper function which outputs a CSV to be annotated by a human. The output is a list of users with the blank “isbot” column.</p>
+<dl class="docutils">
+<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>The name of the file to write the CSV</dd>
+</dl>
+<dl class="docutils">
+<dt>Dataframe</dt>
+<dd>A dataframe of the users, with their screen names and a blank “is_bot” column.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="birdspotter.BirdSpotter.BirdSpotter.getBotness">
+<code class="descname">getBotness</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.getBotness" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dataframe of the botness of each user in the tweet dump. Exposes botnessDataframe through module.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="birdspotter.BirdSpotter.BirdSpotter.loadClassifierModel">
+<code class="descname">loadClassifierModel</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.loadClassifierModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the XGB model, from the saved XGB binary file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="birdspotter.BirdSpotter.BirdSpotter.setWord2VecEmbeddings">
+<code class="descname">setWord2VecEmbeddings</code><span class="sig-paren">(</span><em>embeddings=None</em>, <em>forceReload=True</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.setWord2VecEmbeddings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the word2vec embeddings.</p>
+<p>Sets the word2vec embeddings if it hasn’t alright been set, either through a python dict-like object or a path to a pickle or glove text file.</p>
+<dl class="docutils">
+<dt>embeddings <span class="classifier-delimiter">:</span> <span class="classifier">dict or str</span></dt>
+<dd>Either a python mapping object or a path to a pickle or glove text file of the w2v embeddings</dd>
+<dt>forceReload <span class="classifier-delimiter">:</span> <span class="classifier">boolean</span></dt>
+<dd>If True then the modules embeddings are overridden, otherwise if they exist in the module they aren’t reloaded</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="birdspotter.BirdSpotter.BirdSpotter.trainClassifierModel">
+<code class="descname">trainClassifierModel</code><span class="sig-paren">(</span><em>labelledDataPath</em>, <em>targetColumnName='isbot'</em>, <em>saveFileName=None</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.trainClassifierModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trains the bot detection classifier.</p>
+<p>Trains the bot detection classifier, using an XGB classifier. 
+Due to the way XGB works, the features used are the intersection, between the features from the tweet dumps and the features from the training set.</p>
+<dl class="docutils">
+<dt>labelledDataPath <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>A path to the data with bot labels, as either csv or pickled dataframe/</dd>
+<dt>targetColumnName <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>The name of the column, describing whether a user is a bot or not</dd>
+<dt>saveFileName <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>The name of the file, to save the XGB model binary. It can be loaded with loadClassifierModel.</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-birdspotter.utils">
+<span id="birdspotter-utils-module"></span><h2>birdspotter.utils module<a class="headerlink" href="#module-birdspotter.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="birdspotter.utils.getSource">
+<code class="descclassname">birdspotter.utils.</code><code class="descname">getSource</code><span class="sig-paren">(</span><em>sourcestring</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.utils.getSource" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="birdspotter.utils.getTextFeatures">
+<code class="descclassname">birdspotter.utils.</code><code class="descname">getTextFeatures</code><span class="sig-paren">(</span><em>key</em>, <em>text</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.utils.getTextFeatures" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="birdspotter.utils.getURLs">
+<code class="descclassname">birdspotter.utils.</code><code class="descname">getURLs</code><span class="sig-paren">(</span><em>string</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.utils.getURLs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="birdspotter.utils.grep">
+<code class="descclassname">birdspotter.utils.</code><code class="descname">grep</code><span class="sig-paren">(</span><em>sourcestring</em>, <em>pattern</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.utils.grep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="birdspotter.utils.hourofweekday">
+<code class="descclassname">birdspotter.utils.</code><code class="descname">hourofweekday</code><span class="sig-paren">(</span><em>datestring</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.utils.hourofweekday" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="birdspotter.utils.parse">
+<code class="descclassname">birdspotter.utils.</code><code class="descname">parse</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.utils.parse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-birdspotter">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-birdspotter" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">birdspotter package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-birdspotter.BirdSpotter">birdspotter.BirdSpotter module</a></li>
+<li><a class="reference internal" href="#module-birdspotter.utils">birdspotter.utils module</a></li>
+<li><a class="reference internal" href="#module-birdspotter">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/source/birdspotter.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Rohit Ram.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/source/birdspotter.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
