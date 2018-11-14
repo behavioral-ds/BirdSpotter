@@ -5,4 +5,3 @@ BirdSpotter
    :maxdepth: 4
 
    birdspotter
-   tests
