@@ -39,7 +39,7 @@ Finally, to get the individual users metrics we can run methods like `getBotness
 bs.getBotness()
 ```
 
-For more specific documentation refer to the [tutorial](./tutorial.pynb) or the [documentation](http://birdspotter.rtfd.io/).
+For more specific documentation refer to the [tutorial](./tutorial.ipynb) or the [documentation](http://birdspotter.rtfd.io/).
 
 ## Acknowledgements
 The bot detection system used in this project is based on the work of Yifei Zhang's (The Bot Among Us: Disrupting Truth and Reason Through Online Social media, 2018).
