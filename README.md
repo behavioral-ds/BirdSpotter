@@ -41,11 +41,12 @@ bs.getBotness()
 For more specific documentation refer to the [tutorial](./tutorial.ipynb) or the [documentation](http://birdspotter.rtfd.io/).
 
 ## References
-- Rizoiu, M.A., Graham, T., Zhang, R., Zhang, Y., Ackland, R. and Xie, L., 2018, June. # DebateNight: The Role and Influence of Socialbots on Twitter During the 1st 2016 US Presidential Debate. In Twelfth International AAAI Conference on Web and Social Media.
+- Rizoiu, M.A., Graham, T., Zhang, R., Zhang, Y., Ackland, R. and Xie, L. # DebateNight: The Role and Influence of Socialbots on Twitter During the 1st 2016 US Presidential Debate. In Twelfth International AAAI Conference on Web and Social Media (ICWSM'18), 2018. https://arxiv.org/abs/1802.09808
+- Ram, R., & Rizoiu, M.-A. A social science-grounded approach for quantifying online social influence. In Australian Social Network Analysis Conference (ASNAC'19) (p. 2). Adelaide, Australia, 2019.
 
 ## Acknowledgements
-This project is funded through the UTS Data Science Institute.
+The development of this package was partially supported through a UTS Data Science Institute seed grant.
 
 
 ## License
-Both dataset and code are distributed under the Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0) license, a copy of which can be obtained following this [link](https://creativecommons.org/licenses/by-nc/4.0/). If you require a different license, please contact us at Marian-Andrei@rizoiu.eu
+Both dataset and code are distributed under the Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0) license, a copy of which can be obtained following this [link](https://creativecommons.org/licenses/by-nc/4.0/). If you require a different license, please contact us at Rohit.Ram@uts.edu.au or Marian-Andrei@rizoiu.eu
