@@ -1,0 +1,12 @@
+numpy
+pandas
+python-dateutil
+pytz
+scikit-learn
+scipy
+simplejson
+six
+sklearn
+tqdm
+wget
+xgboost==0.81

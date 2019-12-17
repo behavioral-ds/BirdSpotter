@@ -1,0 +1,13 @@
+MANIFEST.in
+README.md
+setup.cfg
+setup.py
+birdspotter/BirdSpotter.py
+birdspotter/__init__.py
+birdspotter/utils.py
+birdspotter.egg-info/PKG-INFO
+birdspotter.egg-info/SOURCES.txt
+birdspotter.egg-info/dependency_links.txt
+birdspotter.egg-info/requires.txt
+birdspotter.egg-info/top_level.txt
+birdspotter/data/standard_bot_features

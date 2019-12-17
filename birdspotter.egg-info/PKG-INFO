@@ -1,0 +1,20 @@
+Metadata-Version: 1.2
+Name: birdspotter
+Version: 0.1.1a1
+Summary: A package to measure the influence and botness of twitter users, from twitter dumps
+Home-page: https://github.com/behavioral-ds/BirdSpotter
+Author: Rohit Ram
+Author-email: rohitram96@gmail.com
+License: MIT
+Download-URL: https://github.com/behavioral-ds/BirdSpotter/archive/v_011.tar.gz
+Description: UNKNOWN
+Keywords: twitter,influence,botness,birdspotter,dumps
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Sociology
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Requires-Python: >=3

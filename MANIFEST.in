@@ -1,0 +1,7 @@
+include README.md
+include setup.cfg
+include setup.py
+include birdspotter/BirdSpotter.py
+include birdspotter/__init__.py
+include birdspotter/utils.py
+include birdspotter/data/standard_bot_features
