@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
         name = 'birdspotter',
         packages = ['birdspotter'],
-        version = '0.1.2a1',
+        version = '0.1.3a1',
         license = 'MIT',
         description = 'A package to measure the influence and botness of twitter users, from twitter dumps',
         author = 'Rohit Ram',

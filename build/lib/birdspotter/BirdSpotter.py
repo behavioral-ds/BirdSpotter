@@ -495,8 +495,6 @@ class BirdSpotter:
             self.p = p/(alpha if alpha else 1)
             inf, m = influence(p, alpha)
             g['influence ('+str(alpha)+','+str(time_decay)+','+str(beta)+')'] = pd.Series(inf)
-            print(p, np.argmax(self.p, axis=0))
-            print(g['user_id'][list(np.argmax(self.p, axis=0))].values)
             g['expected_parent'] = pd.Series(g['user_id'][list(np.argmax(self.p, axis=0))].values)
             cascades.append(g)
             if not self.quiet:
@@ -539,11 +537,9 @@ class BirdSpotter:
             self.featureDataframe.to_csv(out)
         return self.featureDataframe
     
-    def __composeData(self):
+    def getCascadesDataFrame(self):
         """Adds botness column and standard influence to the cascade dataframe."""
         tmp1 = self.featureDataframe[['botness','influence (None,-6.8e-05,1.0)']]
-        # del self.cascadeDataframe['influence (None,-6.8e-05,1.0)']
-        # del self.cascadeDataframe['botness']
         self.cascadeDataframe.drop([c for c in ['botness','influence (None,-6.8e-05,1.0)'] if c in self.cascadeDataframe.columns], axis=1, inplace=True)
         self.cascadeDataframe = self.cascadeDataframe.join(tmp, on='user_id', lsuffix='l')
         return self.cascadeDataframe
