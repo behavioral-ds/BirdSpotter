@@ -1,18 +1,15 @@
 """
-BirdSpotter is a module which provides an influence and bot detection toolkit for twitter.
+birdspotter is a python package providing a toolkit to measures the social influence and botness of twitter users.
 """
 
 import simplejson
 from tqdm import tqdm
 import wget
 import zipfile
-import logging
 import pandas as pd
 import pickle as pk
-import lzma
 import numpy as np
 from birdspotter.utils import *
-# from utils import *
 import traceback
 import collections
 from xgboost.sklearn import XGBClassifier
@@ -20,87 +17,114 @@ import xgboost as xgb
 import os
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import CountVectorizer
+import dateutil
+from birdspotter.user_influence import P, influence
+from itertools import islice
+import ijson
 
 class BirdSpotter:
+    """Birdspotter measures the social influence and botness of twitter users.
+
+    This class takes a twitter dump in (json or jsonl format) and extract metrics bot and influence metrics for the users. 
+    The class will download word2vec embeddings if they are not specified. 
+    It exposes processed data from the tweet dumps.
+    
+    Attributes:
+        cascadeDataframe (:class:`pandas.DataFrame`): A dataframe of tweets ordered by cascades and time (the column casIndex denotes which cascade each tweet belongs to)
+        featureDataframe (:class:`pandas.DataFrame`): A dataframe of users with their respective botness and influence scores.
+        hashtagDataframe (:class:`pandas.DataFrame`): A dataframe of the text features for hashtags.
+
     """
-    Influence and Bot Detection toolkit for twitter dumps.
 
-    This module takes a twitter json dump and extract metrics bot and influence metrics for the users.
-    It requires a a labelled dataset of bots to do bot detection. It exposes processed data from the tweet dumps.
-
-    """
-
-    def __init__(self):
-        self.word2vecEmbeddings =  None
-
-    def setWord2VecEmbeddings(self, embeddings=None, forceReload=True):
-        """
-        Sets the word2vec embeddings.
-
-        Sets the word2vec embeddings if it hasn't alright been set, either through a python dict-like object or a path to a pickle or facebook text file.
-
+    def __init__(self, path, tweetLimit = None, embeddings='download', quiet=False):
+        """Birdspotter measures the social influence and botness of twitter users.
+        
         Parameters
         ----------
-        embeddings : dict or str
-            Either a python mapping object or a path to a pickle or facebook text file of the w2v embeddings
-        forceReload : boolean
-            If True then the modules embeddings are overridden, otherwise if they exist in the module they aren't reloaded
+        path : str
+            The path to a tweet json or jsonl file containing the tweets for analysis.
+        tweetLimit : int, optional
+            A limit on the number of tweets to process if the tweet dump is too large, if None then all tweets are processed, by default None
+        embeddings : collections.Mapping or str, optional
+            A method for loading word2vec embeddings, which accepts are path to embeddings, a mapping object or a pickle object. Refer to setWord2VecEmbeddings for details. By default 'download'
+        quiet : bool, optional
+            Determines if debug statements will be printed or not, by default False
+        """        
+        self.word2vecEmbeddings = None
+        self.quiet = quiet
+        self.extractTweets(path,  tweetLimit = tweetLimit, embeddings=embeddings)
 
+    def __pprint(self, message):
+        if not self.quiet:
+            print(message)
+
+    def setWord2VecEmbeddings(self, embeddings='download', forceReload=True):
+        """Sets the word2vec embeddings. The embeddings can be a path to a pickle or txt file, a mapping object or the string 'download' which will automatically download and use the FastText 'wiki-news-300d-1M.vec' if not available in the current path.
+        
+        Parameters
+        ----------
+        embeddings : collections.Mapping or str or None, optional
+            A method for loading word2vec embeddings. A path to a embeddings pickle or txt file, a mapping object, the string 'download', by default 'download'. If None, it does nothing.
+        forceReload : bool, optional
+            If the embeddings are already set, forceReload determines whether to update them, by default True
         """
         if not forceReload and self.word2vecEmbeddings is not None:
             return
-        # if embeddings is None:
-        #     # print("Loading Word2Vec Embeddings...")
-        #     # with lzma.open("word2vec.xz","r") as f:
-        #     #     self.word2vecEmbeddings = json.loads(f.read())
-        #     print("Finished loading Word2Vec Embeddings")
         if embeddings is None:
             return
         elif isinstance(embeddings, str) and embeddings == 'download':
             if os.path.isfile('./wiki-news-300d-1M.vec'):
-                print("Loading Facebook wiki-news-300d-1M.vec Word2Vec Embeddings...")
+                self.__pprint("Loading Fasttext wiki-news-300d-1M.vec Word2Vec Embeddings...")
                 with open('./wiki-news-300d-1M.vec',"r") as f:
                     model = {}
-                    with tqdm(total=1000000) as pbar:
+                    if not self.quiet:
+                        pbar = tqdm(total=1000000)
+                    for line in f:
+                        splitLine = line.split()
+                        word = splitLine[0]
+                        embedding = np.array([float(val) for val in splitLine[1:]])
+                        model[word] = embedding
+                        if not self.quiet:
+                            pbar.update(1)
+                    if not self.quiet:
+                        pbar.close()
+                    self.word2vecEmbeddings = model
+                self.__pprint("Finished loading Word2Vec Embeddings")
+            else:
+                try:
+                    self.__pprint("Downloading Fasttext embeddings")
+                    filename = wget.download('https://dl.fbaipublicfiles.com/fasttext/vectors-english/wiki-news-300d-1M.vec.zip')
+                    self.__pprint('\n')
+                    with zipfile.ZipFile(filename, 'r') as zip_ref:
+                        zip_ref.extractall('./')
+                    self.__pprint("Loading downloaded Fasttext wiki-news-300d-1M.vec Word2Vec Embeddings...")
+                    with open('./wiki-news-300d-1M.vec',"r") as f:
+                        model = {}
+                        if not self.quiet:
+                            pbar = tqdm(total=1000000)
                         for line in f:
                             splitLine = line.split()
                             word = splitLine[0]
                             embedding = np.array([float(val) for val in splitLine[1:]])
                             model[word] = embedding
-                            pbar.update(1)
-                    self.word2vecEmbeddings = model
-                print("Finished loading Word2Vec Embeddings")
-            else:
-                try:
-                    print("Downloading Facebook embeddings")
-                    filename = wget.download('https://dl.fbaipublicfiles.com/fasttext/vectors-english/wiki-news-300d-1M.vec.zip')
-                    print('\n')
-                    with zipfile.ZipFile(filename, 'r') as zip_ref:
-                        zip_ref.extractall('./')
-                    print("Loading downloaded Facebook wiki-news-300d-1M.vec Word2Vec Embeddings...")
-                    with open('./wiki-news-300d-1M.vec',"r") as f:
-                        model = {}
-                        with tqdm(total=1000000) as pbar:
-                            for line in f:
-                                splitLine = line.split()
-                                word = splitLine[0]
-                                embedding = np.array([float(val) for val in splitLine[1:]])
-                                model[word] = embedding
+                            if not self.quiet:
                                 pbar.update(1)
+                        if not self.quiet:
+                            pbar.close()
                         self.word2vecEmbeddings = model
-                    print("Finished loading Word2Vec Embeddings")
+                    self.__pprint("Finished loading Word2Vec Embeddings")
                 except Exception as e:
                     print(e)
         elif isinstance(embeddings, str):
             embeddingsPath = embeddings
             _,fileextension = os.path.splitext(embeddingsPath)
             if fileextension == '.pickle':
-                print("Loading Word2Vec Embeddings...")
+                self.__pprint("Loading Word2Vec Embeddings...")
                 with open(embeddingsPath,"rb") as f:
                     self.word2vecEmbeddings = pk.load(f)
-                print("Finished loading Word2Vec Embeddings")
+                self.__pprint("Finished loading Word2Vec Embeddings")
             elif fileextension == '.txt':
-                print("Loading Word2Vec Embeddings...")
+                self.__pprint("Loading Word2Vec Embeddings...")
                 with open(embeddingsPath,"r") as f:
                     model = {}
                     for line in f:
@@ -109,29 +133,29 @@ class BirdSpotter:
                         embedding = np.array([float(val) for val in splitLine[1:]])
                         model[word] = embedding
                     self.word2vecEmbeddings = model
-                print("Finished loading Word2Vec Embeddings")
+                self.__pprint("Finished loading Word2Vec Embeddings")
         elif isinstance(embeddings, collections.Mapping):
             self.word2vecEmbeddings = embeddings
     
     def extractTweets(self, filePath, tweetLimit = None, embeddings='download'):
-        """
-        Extracts tweets from a json dump into a pandas dataframe.
+        """Extracts tweets from a json or jsonl file and generates cascade, feature and hashtag dataframes as class attributes.
+        
+        Note that we use the file extension to determine how to handle the file.
 
         Parameters
         ----------
         filePath : str
-            The path to the json twitter dump, to be loaded.
-        tweetLimit : int
-            Sets a limit on the number of tweets read.
-        embeddings : dict or str
-            Either a python mapping object or a path to a pickle or facebook text file of the w2v embeddings
-
+            The path to a tweet json or jsonl file containing the tweets for analysis.
+        tweetLimit : int, optional
+            A limit on the number of tweets to process if the tweet dump is too large, if None then all tweets are processed, by default None
+        embeddings : collections.Mapping or str or None, optional
+            A method for loading word2vec embeddings. A path to a embeddings pickle or txt file, a mapping object, the string 'download', by default 'download'. If None, it does nothing.
+        
         Returns
         -------
-        Dataframe
-            A dataframe of the features for each user
-
-        """
+        DataFrame
+            A dataframe of user's botness and influence scores (and other features).
+        """        
         # Appending DataFrames line by line is inefficient, because it generates a
         # new dataframe each time. It better to get the entire list and them concat.
         user_list = []
@@ -139,12 +163,21 @@ class BirdSpotter:
         w2v_content_list = []
         w2v_description_list = []
         cascade_list = []
-        print("Starting Tweet Extraction")
+        self.__pprint("Starting Tweet Extraction")
+        _,fileextension = os.path.splitext(filePath)
+        raw_tweets = []
         with open(filePath, encoding="utf-8") as f:
-            for i, line in enumerate(f,1):
-                if tweetLimit is not None and tweetLimit < i:
-                    break
-                j = simplejson.loads(line)
+            if fileextension == '.jsonl':
+                raw_tweets = map(simplejson.loads, list(islice(f, tweetLimit)))
+            elif fileextension == '.json':
+                raw_tweets = list(islice(ijson.items(f, 'item'),tweetLimit))
+            else:
+                raise Exception('Not a valid tweet dump. Needs to be either jsonl or json, with the extension explicit.')
+            if not self.quiet:
+                pbar = tqdm()
+            for j in raw_tweets:
+                if not self.quiet:
+                    pbar.update(1)
                 try:
                     temp_user = {}
                     temp_tweet = {}
@@ -198,6 +231,8 @@ class BirdSpotter:
                     cascade_list.append(temp_cascade)
                 except Exception as err:
                     traceback.print_tb(err.__traceback__)
+            if not self.quiet:
+                pbar.close()
         # We are assuming that user data doesn't change much and if it does, we take that 'latest' as our feature
         userDataframe = pd.DataFrame(user_list).fillna(0).set_index('user_id')
         userDataframe = userDataframe[~userDataframe.index.duplicated(keep='last')]
@@ -210,6 +245,7 @@ class BirdSpotter:
         tweetDataframe['n_quotes'] = n_quoted
 
         self.cascadeDataframe = pd.DataFrame(cascade_list).fillna(0)
+        self.__reformatCascadeDataframe()
 
         contentDataframe = pd.DataFrame(w2v_content_list).set_index('user_id')
         descriptionDataframe = pd.DataFrame(w2v_description_list).set_index('user_id')
@@ -222,13 +258,12 @@ class BirdSpotter:
             self.featureDataframe = self.featureDataframe.join(w2vDataframe)
         
         #Computes the features for all the hashtags. Is currently not protected from namespace errors.
-        self.hashtagdf = self.__computeHashtagFeatures(contentDataframe)
-        self.featureDataframe = self.featureDataframe.join(self.hashtagdf)
+        self.hashtagDataframe = self.__computeHashtagFeatures(contentDataframe)
+        self.featureDataframe = self.featureDataframe.join(self.hashtagDataframe)
         return self.featureDataframe
 
     def getBotAnnotationTemplate(filename="annotationTemplate.csv"):
-        """
-        Writes a CSV with the list of users and a blank column "isbot" to be annotated.
+        """Writes a CSV with the list of users and a blank column "isbot" to be annotated.
 
         A helper function which outputs a CSV to be annotated by a human. The output is a list of users with the blank "isbot" column.
 
@@ -257,14 +292,14 @@ class BirdSpotter:
         transformer = TfidfTransformer(smooth_idf=False)
         tfidf = transformer.fit_transform(X)
         column_names = vectorizer.get_feature_names()
-        hashtagdf = pd.DataFrame(tfidf.toarray(), columns=column_names, index=userIndex)
-        return hashtagdf
+        hashtagDataframe = pd.DataFrame(tfidf.toarray(), columns=column_names, index=userIndex)
+        return hashtagDataframe
 
     def __computeVectors(self, contentdf, descriptiondf):
         """Computes the word2vec features as a dataframe"""
         ud = {}
         for index,row in contentdf.iterrows():
-            vec = np.zeros(300)
+            vec = np.zeros(len(self.word2vecEmbeddings['a']))
             tol = 0
             for w in parse(row['status_text']):
                 if w in self.word2vecEmbeddings:
@@ -285,7 +320,7 @@ class BirdSpotter:
         
         ud = {}
         for index,row in descriptiondf.iterrows():
-            vec = np.zeros(300)
+            vec = np.zeros(len(self.word2vecEmbeddings['a']))
             tol = 0
             for w in parse(row['description']):
                 if w in self.word2vecEmbeddings:
@@ -304,24 +339,19 @@ class BirdSpotter:
         return conw2v.join(desw2v)
     
     def loadClassifierModel(self, fname):
-        """Loads the XGB model, from the saved XGB binary file"""
-        clf = XGBClassifier(
-        learning_rate =0.1,
-        n_estimators=80,
-        max_depth=5, #16
-        subsample=0.6,
-        colsample_bytree=1,
-        objective= 'binary:logistic',
-        n_jobs=10,
-        silent=True,
-        seed =27
-        )
-        clf.load_model(fname)
-        self.clf = clf
+        """Loads the XGB booster model, from the saved XGB binary file
+        
+        Parameters
+        ----------
+        fname : str
+            The path to the XGB binary file
+        """        
+        booster = xgb.Booster()
+        booster.load_model(fname)
+        self.clf = booster
 
     def trainClassifierModel(self, labelledDataPath, targetColumnName='isbot', saveFileName=None):
-        """
-        Trains the bot detection classifier.
+        """Trains the bot detection classifier.
 
         Trains the bot detection classifier, using an XGB classifier. 
         Due to the way XGB works, the features used are the intersection, between the features from the tweet dumps and the features from the training set.
@@ -329,11 +359,11 @@ class BirdSpotter:
         Parameters
         ----------
         labelledDataPath : str
-            A path to the data with bot labels, as either csv or pickled dataframe/
+            A path to the data with bot labels, as either csv or pickled dataframe
         targetColumnName : str
-            The name of the column, describing whether a user is a bot or not
-        saveFileName : str
-            The name of the file, to save the XGB model binary. It can be loaded with loadClassifierModel.
+            The name of the column, describing whether a user is a bot or not, by default 'isbot'
+        saveFileName : str, optional
+            The path of the file, to save the XGB model binary, which can be loaded with loadClassifierModel, by default None
 
         """
         params = {
@@ -368,12 +398,25 @@ class BirdSpotter:
             self.clf.save_model(saveFileName)
 
     def getBotness(self):
-        """ Returns a dataframe of the botness of each user in the tweet dump. Exposes botnessDataframe through module."""
-        if self.clf is None:
-            raise Exception("The classifier has not been loaded yet")
-        if self.featureDataframe is None:
+        """Adds the botness of users to the feature dataframe. 
+        
+        It requires the tweets be extracted and the classifier be trained, otherwise exceptions are raised respectively.
+        
+        Returns
+        -------
+        DataFrame
+            The current feature dataframe of users, with associated botness scores appended.
+        
+        Raises
+        ------
+        Exception
+            Tweets haven't been extracted yet. Need to run extractTweets.
+        """        
+        if not hasattr(self, 'clf'):
+            self.loadClassifierModel(os.path.join(os.path.dirname(__file__), 'data', 'pretrained_botness_model.xgb'))
+        if not hasattr(self, 'featureDataframe'):
             raise Exception("Tweets haven't been extracted yet")
-        if self.columnNameIntersection is None:
+        if not hasattr(self, 'columnNameIntersection'):
             with open(os.path.join(os.path.dirname(__file__), 'data', 'standard_bot_features'), 'r') as f:
                 standard_bot_features = set(f.read().splitlines())
                 self.columnNameIntersection = list(set(self.featureDataframe.columns.values).intersection(standard_bot_features))
@@ -382,15 +425,121 @@ class BirdSpotter:
         bdf = pd.DataFrame()
         bdf['botness'] = self.clf.predict(test)
         bdf['user_id'] = testdf.index
-        self.botnessDataframe = bdf.set_index('user_id')
-        return self.botnessDataframe
+        __botnessDataframe = bdf.set_index('user_id')
+        self.featureDataframe = self.featureDataframe.join(__botnessDataframe)
+        return self.featureDataframe
 
-    def composeData(self):
-        """Adds botness column to the cascade dataframe. Exposes composedDataframe through module."""
-        new = None
-        if self.botnessDataframe is not None and self.cascadeDataframe is not None:
-            new = self.botnessDataframe.loc[self.cascadeDataframe['user_id']].reset_index()['botness']
-            new = pd.concat([self.cascadeDataframe,new], ignore_index=True, axis=1)
-            new.columns = list(self.cascadeDataframe.columns.values) + ['botness']
-            self.composedDataframe = new
-        return new
+    def __reformatCascadeDataframe(self):
+        """ Reformats the cascade dataframe for influence estimation"""
+        self.cascadeDataframe['magnitude'] = self.cascadeDataframe['follower_count']
+        cascades = []
+        groups = self.cascadeDataframe.groupby('cascade_id')
+        self.__pprint('Reformatting cascades')
+        if not self.quiet:
+            pbar = tqdm(total=len(groups))
+        # Group the tweets by id
+        for i, g in groups:
+            g = g.reset_index()
+            min_time = dateutil.parser.parse(g['original_created_at'][0])
+            g['timestamp'] = pd.to_datetime(g['created_at']).values.astype('datetime64[s]')
+            g['min_time'] = min_time
+            g['min_time'] = g['min_time'].values.astype('datetime64[s]')
+            g['diff'] = g['timestamp'].sub(g['min_time'], axis=0)
+            g['time'] = g['diff'].dt.total_seconds()
+            g = g.sort_values(by=['time'])
+            cascades.append(g)
+            if not self.quiet:
+                pbar.update(1)
+        if not self.quiet:
+            pbar.close()
+        self.cascadeDataframe = pd.concat(cascades)
+        self.cascadeDataframe = self.cascadeDataframe[['magnitude', 'time', 'user_id', 'screen_name', 'status_text', 'cascade_id']]
+        self.cascadeDataframe.sort_values(by=['cascade_id', 'time'])
+        return self.cascadeDataframe
+
+
+    def getInfluenceScores(self, time_decay = -0.000068, alpha = None, beta = 1.0):
+        """Adds a specified influence score to feature dataframe
+        
+        The specified influence will appear in the returned feature df, under the column 'influence (<alpha>,<time_decay>,<beta>)'.
+
+        Parameters
+        ----------
+        time_decay : float, optional
+            The time-decay r parameter described in the paper, by default -0.000068
+        alpha : float, optional
+             A float between 0 and 1, as described in the paper. If None DebateNight method is used, else spatial-decay method, by default None
+        beta : float, optional
+            A social strength hyper-parameter, by default 1.0
+        
+        Returns
+        -------
+        Dataframe
+            The current feature dataframe of users, with associated botness scores.
+        
+        Raises
+        ------
+        Exception
+            Tweets haven't been extracted yet. Need to run extractTweets.
+        """        
+        if not hasattr(self, 'cascadeDataframe'):
+            raise Exception("Tweets haven't been extracted yet")
+        groups = self.cascadeDataframe.groupby('cascade_id')
+        cascades = []
+        self.__pprint("Getting influence scores of users, with alpha of " + str(alpha) + ", with time decay of " + str(time_decay) + ", with beta of " + str(beta))
+        if not self.quiet:
+            pbar = tqdm(total=len(groups))
+        for i, g in groups:
+            g = g.reset_index()
+            p = P(cascade=g, alpha=alpha, r=time_decay, beta=beta)
+            self.p = p/(alpha if alpha else 1)
+            inf, m = influence(p, alpha)
+            g['influence ('+str(alpha)+','+str(time_decay)+','+str(beta)+')'] = pd.Series(inf)
+            g['expected_parent'] = pd.Series(g['user_id'][list(np.argmax(self.p, axis=0))].values)
+            cascades.append(g)
+            if not self.quiet:
+                pbar.update(1)
+        if not self.quiet:
+            pbar.close()
+        self.cascadeDataframe = pd.concat(cascades)
+        tmp = self.cascadeDataframe.groupby(['user_id']).mean()
+        tmp = tmp[['influence ('+str(alpha)+','+str(time_decay)+','+str(beta)+')']]
+        self.featureDataframe = self.featureDataframe.join(tmp)
+        return self.featureDataframe
+
+    def getLabeledUsers(self, out=None):
+        """Generates a standard dataframe of users with botness and DebateNight influence scores (and other features), and optionally outputs a csv.
+        
+        Parameters
+        ----------
+        out : str, optional
+            A output path for a csv of the results, by default None
+        
+        Returns
+        -------
+        DataFrame
+            A dataframe of the botness and influence scores (and other feautes) of each user
+        
+        Raises
+        ------
+        Exception
+            Tweets haven't been extracted yet
+        """
+        if not hasattr(self, 'featureDataframe'):
+            raise Exception("Tweets haven't been extracted yet")
+        if not hasattr(self, 'clf'):
+            self.loadClassifierModel(os.path.join(os.path.dirname(__file__), 'data', 'pretrained_botness_model.xgb'))
+        if 'botness' not in self.featureDataframe.columns:
+            self.getBotness()
+        if 'influence (None,-6.8e-05,1.0)' not in self.featureDataframe.columns:
+            self.getInfluenceScores()
+        if out is not None:
+            self.featureDataframe.to_csv(out)
+        return self.featureDataframe
+    
+    def getCascadesDataFrame(self):
+        """Adds botness column and standard influence to the cascade dataframe."""
+        tmp1 = self.featureDataframe[['botness','influence (None,-6.8e-05,1.0)']]
+        self.cascadeDataframe.drop([c for c in ['botness','influence (None,-6.8e-05,1.0)'] if c in self.cascadeDataframe.columns], axis=1, inplace=True)
+        self.cascadeDataframe = self.cascadeDataframe.join(tmp, on='user_id', lsuffix='l')
+        return self.cascadeDataframe

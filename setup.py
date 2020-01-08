@@ -9,9 +9,10 @@ setup(
         author = 'Rohit Ram',
         author_email = 'rohitram96@gmail.com',
         url = 'https://github.com/behavioral-ds/BirdSpotter',
-        download_url = 'https://github.com/behavioral-ds/BirdSpotter/archive/v_011.tar.gz',
+        download_url = 'https://github.com/behavioral-ds/BirdSpotter/archive/0.1.2a1.tar.gz',
         keywords = ['twitter', 'influence', 'botness', 'birdspotter', 'dumps'],
         include_package_data=True,
+        scripts=['bin/birdspotter'],
         python_requires='>=3',
         setup_requires=['wheel'],
         install_requires=[
@@ -26,6 +27,7 @@ setup(
             'scipy',
             'six',
             'sklearn',
+            'ijson',
             'xgboost==0.81'
         ],
         classifiers=[

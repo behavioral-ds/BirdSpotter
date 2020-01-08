@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+
+from birdspotter import BirdSpotter
+import getopt, sys
+
+args = sys.argv[1:]
+gnuOptions = ['input_dump_path=', 'output_csv_path=','quiet']
+unixOptions = "i:o:q"
+
+try:
+    arguments, values = getopt.getopt(args, unixOptions, gnuOptions)
+except getopt.error as err:
+    print(str(err))
+    sys.exit(2)
+
+dumpPath = None
+outPath = None
+quiet = False
+
+for currentArgument, currentValue in arguments:
+    if currentArgument in ("-i", "--input_dump_path"):
+        dumpPath = currentValue
+    elif currentArgument in ("-o", "--output_csv_path"):
+        outPath = currentValue
+    elif currentArgument in ("-q", "--quiet"):
+        quiet = True
+
+if dumpPath is None:
+    sys.exit("birdspotter requires the path to a twitter dump"+'\n'+"Exiting")
+bs = BirdSpotter(dumpPath, quiet=quiet)
+if outPath is None:
+    if not quiet:
+        print("No out path was specified, defaulting to './output.csv'")
+    outPath = './output.csv'
+labeledUsers = bs.getLabeledUsers(out=outPath)

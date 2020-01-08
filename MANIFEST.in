@@ -5,3 +5,4 @@ include birdspotter/BirdSpotter.py
 include birdspotter/__init__.py
 include birdspotter/utils.py
 include birdspotter/data/standard_bot_features
+include birdspotter/data/pretrained_botness_model.xgb
