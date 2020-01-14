@@ -18,10 +18,10 @@ Ram, R., & Rizoiu, M.-A. A social science-grounded approach for quantifying onli
 
 ## Installation
 `pip3 install birdspotter`
-##### `birdspotter` requires a python version `>=3`.
+`birdspotter` requires a python version `>=3`.
 
 ## Usage
-##### To use `birdspotter` on your own twitter dump, replace './2016.json' with the path to your twitter dump './path/to/tweet/dump.json'. In this example we use [Brendan Brown's archive](https://github.com/bpb27/trump_tweet_data_archive) of `@realdonaldtrump` tweets in 2016. It can be downloaded [here](https://github.com/bpb27/trump-tweet-archive/raw/master/data/realdonaldtrump/2016.json).
+To use `birdspotter` on your own twitter dump, replace './2016.json' with the path to your twitter dump './path/to/tweet/dump.json'. In this example we use [Brendan Brown's archive](https://github.com/bpb27/trump_tweet_data_archive) of `@realdonaldtrump` tweets in 2016. It can be downloaded [here](https://github.com/bpb27/trump-tweet-archive/raw/master/data/realdonaldtrump/2016.json).
 
  ```python
 from birdspotter import BirdSpotter
@@ -32,14 +32,14 @@ labeledUsers = bs.getLabeledUsers(out='./output.csv')
 
 After extracting the tweets, `getLabeledDataFrame()` returns a `pandas` dataframe with the influence and botness labels of users and writes a `csv` file if a path is specified i.e. `./output.csv`.
 
- ##### `birdspotter` relies on the [Fasttext word embeddings](https://fasttext.cc/docs/en/english-vectors.html) [wiki-news-300d-1M.vec](https://dl.fbaipublicfiles.com/fasttext/vectors-english/wiki-news-300d-1M.vec.zip), which will automatically be downloaded if not available in the current directory (`./`) or a relative data folder (`./data/`).
+`birdspotter` relies on the [Fasttext word embeddings](https://fasttext.cc/docs/en/english-vectors.html) [wiki-news-300d-1M.vec](https://dl.fbaipublicfiles.com/fasttext/vectors-english/wiki-news-300d-1M.vec.zip), which will automatically be downloaded if not available in the current directory (`./`) or a relative data folder (`./data/`).
 
 ### Get Cascades Data
 After extracting the tweets, the retweet cascades are accessible by using:
 ```python
 cascades = bs.getCascadesDataFrame()
 ```
-##### This dataframe includes the expected structure of the retweet cascade as given by Rizoiu et al. (2018) via the column `expected_parent` in this dataframe.
+This dataframe includes the expected structure of the retweet cascade as given by Rizoiu et al. (2018) via the column `expected_parent` in this dataframe.
 
 ## Advanced Usage
 ### Adding more influence metrics
@@ -68,7 +68,7 @@ bs = BirdSpotter('./2016.json', embeddings=customEmbedding)
 
 Embeddings can be set through several methods, refer to [setWord2VecEmbeddings]().
 
-##### Note the default bot training data uses the [wiki-news-300d-1M.vec](https://dl.fbaipublicfiles.com/fasttext/vectors-english/wiki-news-300d-1M.vec.zip) and as such we would need to retrain the bot detector for alternative word embeddings.
+Note the default bot training data uses the [wiki-news-300d-1M.vec](https://dl.fbaipublicfiles.com/fasttext/vectors-english/wiki-news-300d-1M.vec.zip) and as such we would need to retrain the bot detector for alternative word embeddings.
 ## Alternatives to python
 ### Command-line usage
  `birdspotter` can be accessed through the command-line to return a `csv`, with the recipe below:

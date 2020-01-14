@@ -199,6 +199,10 @@ class BirdSpotter:
                     temp_cascade['status_text'] = j['text']
                     temp_cascade['screen_name'] = j['user']['screen_name']
                     
+                    temp_user['screen_name'] = j['user']['screen_name']
+                    temp_user['description'] = j['user']['description']
+                    temp_user['followers_count'] = j['user']['followers_count']    
+
                     temp_cascade['user_id'] = j['user']['id']
                     temp_user['user_id'] = j['user']['id']
                     temp_tweet['user_id'] = j['user']['id']
@@ -426,7 +430,8 @@ class BirdSpotter:
         bdf['botness'] = self.clf.predict(test)
         bdf['user_id'] = testdf.index
         __botnessDataframe = bdf.set_index('user_id')
-        self.featureDataframe = self.featureDataframe.join(__botnessDataframe)
+        self.featureDataframe = self.featureDataframe.join(__botnessDataframe) 
+        self.featureDataframe = self.featureDataframe[~self.featureDataframe.index.duplicated()]
         return self.featureDataframe
 
     def __reformatCascadeDataframe(self):
@@ -505,6 +510,7 @@ class BirdSpotter:
         tmp = self.cascadeDataframe.groupby(['user_id']).mean()
         tmp = tmp[['influence ('+str(alpha)+','+str(time_decay)+','+str(beta)+')']]
         self.featureDataframe = self.featureDataframe.join(tmp)
+        self.featureDataframe = self.featureDataframe[~self.featureDataframe.index.duplicated()]
         return self.featureDataframe
 
     def getLabeledUsers(self, out=None):
@@ -533,13 +539,21 @@ class BirdSpotter:
             self.getBotness()
         if 'influence (None,-6.8e-05,1.0)' not in self.featureDataframe.columns:
             self.getInfluenceScores()
+        if 'cascade_membership' not in self.featureDataframe.columns:
+            self.getCascadeMembership()
         if out is not None:
             self.featureDataframe.to_csv(out)
         return self.featureDataframe
-    
+
+    def getCascadeMembership(self):
+        self.featureDataframe['cascade_membership'] = self.cascadeDataframe.groupby('user_id').apply(lambda x: list(x['cascade_id']))
+        return self.featureDataframe
+
     def getCascadesDataFrame(self):
         """Adds botness column and standard influence to the cascade dataframe."""
-        tmp1 = self.featureDataframe[['botness','influence (None,-6.8e-05,1.0)']]
+        tmp = self.featureDataframe[['botness','influence (None,-6.8e-05,1.0)']]
+        tmp
         self.cascadeDataframe.drop([c for c in ['botness','influence (None,-6.8e-05,1.0)'] if c in self.cascadeDataframe.columns], axis=1, inplace=True)
         self.cascadeDataframe = self.cascadeDataframe.join(tmp, on='user_id', lsuffix='l')
+        self.cascadeDataframe.drop_duplicates(subset=['user_id','cascade_id'], inplace=True)
         return self.cascadeDataframe

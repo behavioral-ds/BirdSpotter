@@ -1,0 +1,325 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>birdspotter: A tool to measure social attributes of Twitter users &mdash; birdspotter 0.1.4b1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="birdspotter" href="modules.html" />
+    <link rel="prev" title="Welcome to birdspotter’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> birdspotter
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">README:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">birdspotter</span></code>: A tool to measure social attributes of Twitter users</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#references">References:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#get-cascades-data">Get Cascades Data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-usage">Advanced Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#adding-more-influence-metrics">Adding more influence metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#training-with-your-own-botness-data">Training with your own botness data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#defining-your-own-word-embeddings">Defining your own word embeddings</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#alternatives-to-python">Alternatives to python</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#command-line-usage">Command-line usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#r-usage">R usage</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#acknowledgements">Acknowledgements</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Modules:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">birdspotter</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">birdspotter</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">birdspotter</span></code>: A tool to measure social attributes of Twitter users</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/README.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <img src="https://raw.githubusercontent.com/behavioral-ds/BirdSpotter/master/birdspotter_logo.png" alt="logo" width="150"/> <div class="section" id="birdspotter-a-tool-to-measure-social-attributes-of-twitter-users">
+<h1><code class="docutils literal notranslate"><span class="pre">birdspotter</span></code>: A tool to measure social attributes of Twitter users<a class="headerlink" href="#birdspotter-a-tool-to-measure-social-attributes-of-twitter-users" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference external" href="https://pypi.python.org/pypi/birdspotter/"><img alt="PyPI status" src="https://img.shields.io/pypi/status/birdspotter.svg" /></a> <a class="reference external" href="https://pypi.python.org/pypi/birdspotter/"><img alt="PyPI version fury.io" src="https://badge.fury.io/py/birdspotter.svg" /></a> <a class="reference external" href="http://birdspotter.readthedocs.io/?badge=latest"><img alt="Documentation Status" src="https://readthedocs.org/projects/birdspotter/badge/?version=latest" /></a></p>
+<p><code class="docutils literal notranslate"><span class="pre">birdspotter</span></code> is a python package providing a toolkit to measures the <em>social influence</em> and <em>botness</em> of twitter users. It takes a twitter dump input in <code class="docutils literal notranslate"><span class="pre">json</span></code> or <code class="docutils literal notranslate"><span class="pre">jsonl</span></code> format and produces measures for:</p>
+<ul class="simple">
+<li><p><strong>Social Influence</strong>: The relative amount that one user can cause another user to adopt a behaviour, such as retweeting.</p></li>
+<li><p><strong>Botness</strong>: The amount that a user appears automated.</p></li>
+</ul>
+<div class="section" id="references">
+<h2>References:<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Rizoiu</span><span class="p">,</span> <span class="n">M</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="p">,</span> <span class="n">Graham</span><span class="p">,</span> <span class="n">T</span><span class="o">.</span><span class="p">,</span> <span class="n">Zhang</span><span class="p">,</span> <span class="n">R</span><span class="o">.</span><span class="p">,</span> <span class="n">Zhang</span><span class="p">,</span> <span class="n">Y</span><span class="o">.</span><span class="p">,</span> <span class="n">Ackland</span><span class="p">,</span> <span class="n">R</span><span class="o">.</span> <span class="ow">and</span> <span class="n">Xie</span><span class="p">,</span> <span class="n">L</span><span class="o">.</span> <span class="c1"># DebateNight: The Role and Influence of Socialbots on Twitter During the 1st 2016 US Presidential Debate. In Twelfth International AAAI Conference on Web and Social Media (ICWSM&#39;18), 2018. https://arxiv.org/abs/1802.09808</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Ram</span><span class="p">,</span> <span class="n">R</span><span class="o">.</span><span class="p">,</span> <span class="o">&amp;</span> <span class="n">Rizoiu</span><span class="p">,</span> <span class="n">M</span><span class="o">.-</span><span class="n">A</span><span class="o">.</span> <span class="n">A</span> <span class="n">social</span> <span class="n">science</span><span class="o">-</span><span class="n">grounded</span> <span class="n">approach</span> <span class="k">for</span> <span class="n">quantifying</span> <span class="n">online</span> <span class="n">social</span> <span class="n">influence</span><span class="o">.</span> <span class="n">In</span> <span class="n">Australian</span> <span class="n">Social</span> <span class="n">Network</span> <span class="n">Analysis</span> <span class="n">Conference</span> <span class="p">(</span><span class="n">ASNAC</span><span class="s1">&#39;19) (p. 2). Adelaide, Australia, 2019.</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">pip3</span> <span class="pre">install</span> <span class="pre">birdspotter</span></code>
+<code class="docutils literal notranslate"><span class="pre">birdspotter</span></code> requires a python version <code class="docutils literal notranslate"><span class="pre">&gt;=3</span></code>.</p>
+</div>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<p>To use <code class="docutils literal notranslate"><span class="pre">birdspotter</span></code> on your own twitter dump, replace ‘./2016.json’ with the path to your twitter dump ‘./path/to/tweet/dump.json’. In this example we use <a class="reference external" href="https://github.com/bpb27/trump_tweet_data_archive">Brendan Brown’s archive</a> of <code class="docutils literal notranslate"><span class="pre">&#64;realdonaldtrump</span></code> tweets in 2016. It can be downloaded <a class="reference external" href="https://github.com/bpb27/trump-tweet-archive/raw/master/data/realdonaldtrump/2016.json">here</a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">birdspotter</span> <span class="kn">import</span> <span class="n">BirdSpotter</span>
+<span class="n">bs</span> <span class="o">=</span> <span class="n">BirdSpotter</span><span class="p">(</span><span class="s1">&#39;./2016.json&#39;</span><span class="p">)</span>
+<span class="c1"># This may take a few minutes, go grab a coffee...</span>
+<span class="n">labeledUsers</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">getLabeledUsers</span><span class="p">(</span><span class="n">out</span><span class="o">=</span><span class="s1">&#39;./output.csv&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>After extracting the tweets, <code class="docutils literal notranslate"><span class="pre">getLabeledDataFrame()</span></code> returns a <code class="docutils literal notranslate"><span class="pre">pandas</span></code> dataframe with the influence and botness labels of users and writes a <code class="docutils literal notranslate"><span class="pre">csv</span></code> file if a path is specified i.e. <code class="docutils literal notranslate"><span class="pre">./output.csv</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">birdspotter</span></code> relies on the <a class="reference external" href="https://fasttext.cc/docs/en/english-vectors.html">Fasttext word embeddings</a> <a class="reference external" href="https://dl.fbaipublicfiles.com/fasttext/vectors-english/wiki-news-300d-1M.vec.zip">wiki-news-300d-1M.vec</a>, which will automatically be downloaded if not available in the current directory (<code class="docutils literal notranslate"><span class="pre">./</span></code>) or a relative data folder (<code class="docutils literal notranslate"><span class="pre">./data/</span></code>).</p>
+<div class="section" id="get-cascades-data">
+<h3>Get Cascades Data<a class="headerlink" href="#get-cascades-data" title="Permalink to this headline">¶</a></h3>
+<p>After extracting the tweets, the retweet cascades are accessible by using:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cascades</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">getCascadesDataFrame</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This dataframe includes the expected structure of the retweet cascade as given by Rizoiu et al. (2018) via the column <code class="docutils literal notranslate"><span class="pre">expected_parent</span></code> in this dataframe.</p>
+</div>
+</div>
+<div class="section" id="advanced-usage">
+<h2>Advanced Usage<a class="headerlink" href="#advanced-usage" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="adding-more-influence-metrics">
+<h3>Adding more influence metrics<a class="headerlink" href="#adding-more-influence-metrics" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">birdspotter</span></code> provides DebateNight influence as a standard, when <code class="docutils literal notranslate"><span class="pre">getLabeledUsers</span></code> is run. To generate spatial-decay influence run:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">bs</span><span class="o">.</span><span class="n">getInfluenceScores</span><span class="p">(</span><span class="n">time_decay</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.000068</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.15</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This returns the updated <code class="docutils literal notranslate"><span class="pre">featureDataframe</span></code> with influence scores appended, under the column <code class="docutils literal notranslate"><span class="pre">influence</span> <span class="pre">(&lt;alpha&gt;,&lt;time_decay&gt;,&lt;beta&gt;)</span></code>.</p>
+</div>
+<div class="section" id="training-with-your-own-botness-data">
+<h3>Training with your own botness data<a class="headerlink" href="#training-with-your-own-botness-data" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">birdspotter</span></code> provides functionality for training the botness detector with your own training data. To generate an <code class="docutils literal notranslate"><span class="pre">csv</span></code> to be annotated run:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">bs</span><span class="o">.</span><span class="n">getBotAnnotationTemplate</span><span class="p">(</span><span class="s1">&#39;./annotation_file.csv&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Once annotated the botness detector can be trained with:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">bs</span><span class="o">.</span><span class="n">trainClassifierModel</span><span class="p">(</span><span class="s1">&#39;./annotation_file.csv&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="defining-your-own-word-embeddings">
+<h3>Defining your own word embeddings<a class="headerlink" href="#defining-your-own-word-embeddings" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">birdspotter</span></code> provides functionality for defining your own word embeddings. For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">customEmbedding</span> <span class="c1"># A mapping such as a dict() representing word embeddings</span>
+<span class="n">bs</span> <span class="o">=</span> <span class="n">BirdSpotter</span><span class="p">(</span><span class="s1">&#39;./2016.json&#39;</span><span class="p">,</span> <span class="n">embeddings</span><span class="o">=</span><span class="n">customEmbedding</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Embeddings can be set through several methods, refer to <a class="reference external" href="#">setWord2VecEmbeddings</a>.</p>
+<p>Note the default bot training data uses the <a class="reference external" href="https://dl.fbaipublicfiles.com/fasttext/vectors-english/wiki-news-300d-1M.vec.zip">wiki-news-300d-1M.vec</a> and as such we would need to retrain the bot detector for alternative word embeddings.</p>
+</div>
+</div>
+<div class="section" id="alternatives-to-python">
+<h2>Alternatives to python<a class="headerlink" href="#alternatives-to-python" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="command-line-usage">
+<h3>Command-line usage<a class="headerlink" href="#command-line-usage" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">birdspotter</span></code> can be accessed through the command-line to return a <code class="docutils literal notranslate"><span class="pre">csv</span></code>, with the recipe below:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">birdspotter</span> <span class="o">./</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">twitter</span><span class="o">/</span><span class="n">dump</span><span class="o">.</span><span class="n">json</span> <span class="o">./</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">output</span><span class="o">/</span><span class="n">directory</span><span class="o">/</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="r-usage">
+<h3>R usage<a class="headerlink" href="#r-usage" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">birdspotter</span></code> functionality can be accessed in <code class="docutils literal notranslate"><span class="pre">R</span></code> via the <a class="reference external" href="https://rstudio.github.io/reticulate/"><code class="docutils literal notranslate"><span class="pre">reticulate</span></code></a> package. <code class="docutils literal notranslate"><span class="pre">reticulate</span></code> still requires a <code class="docutils literal notranslate"><span class="pre">python</span></code> installation on your system and <code class="docutils literal notranslate"><span class="pre">birdspotter</span></code> to be installed. The following produces the same results as the standard usage.</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="nf">install.packages</span><span class="p">(</span><span class="s">&quot;reticulate&quot;</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">reticulate</span><span class="p">)</span>
+<span class="nf">use_python</span><span class="p">(</span><span class="nf">Sys.which</span><span class="p">(</span><span class="s">&quot;python3&quot;</span><span class="p">))</span>
+<span class="n">birdspotter</span> <span class="o">&lt;-</span> <span class="nf">import</span><span class="p">(</span><span class="s">&quot;birdspotter&quot;</span><span class="p">)</span>
+<span class="n">bs</span> <span class="o">&lt;-</span> <span class="n">birdspotter</span><span class="o">$</span><span class="nf">BirdSpotter</span><span class="p">(</span><span class="s">&quot;./2016.json&quot;</span><span class="p">)</span>
+<span class="n">bs</span><span class="o">$</span><span class="nf">getLabeledDataFrame</span><span class="p">(</span><span class="n">out</span> <span class="o">=</span> <span class="s">&#39;./output.csv&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="acknowledgements">
+<h2>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permalink to this headline">¶</a></h2>
+<p>The development of this package was partially supported through a UTS Data Science Institute seed grant.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="modules.html" class="btn btn-neutral float-right" title="birdspotter" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to birdspotter’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Rohit Ram
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
