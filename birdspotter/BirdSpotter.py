@@ -181,17 +181,17 @@ class BirdSpotter:
                 try:
                     temp_user = {}
                     temp_tweet = {}
-                    temp_content = {'status_text':j['text'], 'user_id' : j['user']['id']}
-                    temp_description = {'description':j['user']['description'], 'user_id' : j['user']['id']}
+                    temp_content = {'status_text':j['text'], 'user_id' : j['user']['id_str']}
+                    temp_description = {'description':j['user']['description'], 'user_id' : j['user']['id_str']}
                     temp_cascade = {}
                     
                     if 'retweeted_status' in j:
-                        temp_cascade['cascade_id'] = j['retweeted_status']['id']
+                        temp_cascade['cascade_id'] = j['retweeted_status']['id_str']
                         temp_cascade['original_created_at'] = j['retweeted_status']['created_at']
                         temp_cascade['created_at'] = j['created_at']
                         temp_cascade['retweeted'] = True
                     else:
-                        temp_cascade['cascade_id'] = j['id']
+                        temp_cascade['cascade_id'] = j['id_str']
                         temp_cascade['original_created_at'] = j['created_at']
                         temp_cascade['created_at'] = j['created_at']
                         temp_cascade['retweeted'] = False    
@@ -203,9 +203,9 @@ class BirdSpotter:
                     temp_user['description'] = j['user']['description']
                     temp_user['followers_count'] = j['user']['followers_count']    
 
-                    temp_cascade['user_id'] = j['user']['id']
-                    temp_user['user_id'] = j['user']['id']
-                    temp_tweet['user_id'] = j['user']['id']
+                    temp_cascade['user_id'] = j['user']['id_str']
+                    temp_user['user_id'] = j['user']['id_str']
+                    temp_tweet['user_id'] = j['user']['id_str']
 
                     temp_user.update(getTextFeatures('name',j['user']['name']))
                     temp_user.update(getTextFeatures('location',j['user']['location']))

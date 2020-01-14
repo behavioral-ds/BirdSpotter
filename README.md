@@ -21,11 +21,11 @@ Ram, R., & Rizoiu, M.-A. A social science-grounded approach for quantifying onli
 ##### `birdspotter` requires a python version `>=3`.
 
 ## Usage
-##### To use `birdspotter` on your own twitter dump, replace './2016.json' with the path to your twitter dump './path/to/tweet/dump.json'. In this example we use [Brendan Brown's archive](https://github.com/bpb27/trump_tweet_data_archive) of `@realdonaldtrump` tweets in 2016. It can be downloaded [here](https://github.com/bpb27/trump-tweet-archive/raw/master/data/realdonaldtrump/2016.json).
+##### To use `birdspotter` on your own twitter dump, replace './example.jsonl' with the path to your twitter dump './path/to/tweet/dump.json'. In this example we use a bespoke dataset found in this repository. It can be downloaded [here](https://raw.githubusercontent.com/behavioral-ds/BirdSpotter/master/example.jsonl).
 
  ```python
 from birdspotter import BirdSpotter
-bs = BirdSpotter('./2016.json')
+bs = BirdSpotter('./example.jsonl')
 # This may take a few minutes, go grab a coffee...
 labeledUsers = bs.getLabeledUsers(out='./output.csv')
 ```
@@ -63,7 +63,7 @@ bs.trainClassifierModel('./annotation_file.csv')
 `birdspotter` provides functionality for defining your own word embeddings. For example:
 ```python
 customEmbedding # A mapping such as a dict() representing word embeddings
-bs = BirdSpotter('./2016.json', embeddings=customEmbedding)
+bs = BirdSpotter('./example.jsonl', embeddings=customEmbedding)
 ```
 
 Embeddings can be set through several methods, refer to [setWord2VecEmbeddings]().
@@ -84,7 +84,7 @@ install.packages("reticulate")
 library(reticulate)
 use_python(Sys.which("python3"))
 birdspotter <- import("birdspotter")
-bs <- birdspotter$BirdSpotter("./2016.json")
+bs <- birdspotter$BirdSpotter("./example.jsonl")
 bs$getLabeledDataFrame(out = './output.csv')
 ```
 
