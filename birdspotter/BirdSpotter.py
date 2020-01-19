@@ -181,7 +181,8 @@ class BirdSpotter:
                 try:
                     temp_user = {}
                     temp_tweet = {}
-                    temp_content = {'status_text':j['text'], 'user_id' : j['user']['id_str']}
+                    temp_text = (j['text'] if 'text' in j.keys() else j['full_text'])
+                    temp_content = {'status_text': temp_text, 'user_id' : j['user']['id_str']}
                     temp_description = {'description':j['user']['description'], 'user_id' : j['user']['id_str']}
                     temp_cascade = {}
                     
@@ -196,7 +197,7 @@ class BirdSpotter:
                         temp_cascade['created_at'] = j['created_at']
                         temp_cascade['retweeted'] = False    
                     temp_cascade['follower_count'] = j['user']['followers_count']
-                    temp_cascade['status_text'] = j['text']
+                    temp_cascade['status_text'] = temp_text
                     temp_cascade['screen_name'] = j['user']['screen_name']
                     
                     temp_user['screen_name'] = j['user']['screen_name']
@@ -221,7 +222,7 @@ class BirdSpotter:
                     temp_user['favorite_count'] = j['favorite_count']
                     temp_user['favourites_count'] = j['user']['favourites_count']
 
-                    temp_tweet.update(getTextFeatures('status_text',j['text']))
+                    temp_tweet.update(getTextFeatures('status_text',temp_text))
                     temp_tweet['n_tweets'] = 1 if 'retweeted_status' in j and ('quoted_status_is' in j) else 0
                     temp_tweet['n_retweets'] = 1 if 'retweeted_status' in j else 0
                     temp_tweet['n_quotes'] = 1 if 'quoted_status_id' in j else 0
@@ -263,10 +264,12 @@ class BirdSpotter:
         
         #Computes the features for all the hashtags. Is currently not protected from namespace errors.
         self.hashtagDataframe = self.__computeHashtagFeatures(contentDataframe)
-        self.featureDataframe = self.featureDataframe.join(self.hashtagDataframe)
+        if 'influence' in self.hashtagDataframe.columns:
+            self.hashtagDataframe.drop('influence', inplace=True)
+        self.featureDataframe = self.featureDataframe.join(self.hashtagDataframe, rsuffix='_hashtag')
         return self.featureDataframe
 
-    def getBotAnnotationTemplate(filename="annotationTemplate.csv"):
+    def getBotAnnotationTemplate(self, filename="annotationTemplate.csv"):
         """Writes a CSV with the list of users and a blank column "isbot" to be annotated.
 
         A helper function which outputs a CSV to be annotated by a human. The output is a list of users with the blank "isbot" column.
@@ -487,6 +490,7 @@ class BirdSpotter:
         Exception
             Tweets haven't been extracted yet. Need to run extractTweets.
         """        
+        column_name = ("influence" if alpha == None and time_decay == -0.000068 and beta == 1.0 else 'influence ('+str(alpha)+','+str(time_decay)+','+str(beta)+')')
         if not hasattr(self, 'cascadeDataframe'):
             raise Exception("Tweets haven't been extracted yet")
         groups = self.cascadeDataframe.groupby('cascade_id')
@@ -499,7 +503,7 @@ class BirdSpotter:
             p = P(cascade=g, alpha=alpha, r=time_decay, beta=beta)
             self.p = p/(alpha if alpha else 1)
             inf, m = influence(p, alpha)
-            g['influence ('+str(alpha)+','+str(time_decay)+','+str(beta)+')'] = pd.Series(inf)
+            g[column_name] = pd.Series(inf)
             g['expected_parent'] = pd.Series(g['user_id'][list(np.argmax(self.p, axis=0))].values)
             cascades.append(g)
             if not self.quiet:
@@ -508,7 +512,7 @@ class BirdSpotter:
             pbar.close()
         self.cascadeDataframe = pd.concat(cascades)
         tmp = self.cascadeDataframe.groupby(['user_id']).mean()
-        tmp = tmp[['influence ('+str(alpha)+','+str(time_decay)+','+str(beta)+')']]
+        tmp = tmp[[column_name]]
         self.featureDataframe = self.featureDataframe.join(tmp)
         self.featureDataframe = self.featureDataframe[~self.featureDataframe.index.duplicated()]
         return self.featureDataframe
@@ -537,7 +541,7 @@ class BirdSpotter:
             self.loadClassifierModel(os.path.join(os.path.dirname(__file__), 'data', 'pretrained_botness_model.xgb'))
         if 'botness' not in self.featureDataframe.columns:
             self.getBotness()
-        if 'influence (None,-6.8e-05,1.0)' not in self.featureDataframe.columns:
+        if 'influence' not in self.featureDataframe.columns:
             self.getInfluenceScores()
         if 'cascade_membership' not in self.featureDataframe.columns:
             self.getCascadeMembership()
@@ -551,9 +555,9 @@ class BirdSpotter:
 
     def getCascadesDataFrame(self):
         """Adds botness column and standard influence to the cascade dataframe."""
-        tmp = self.featureDataframe[['botness','influence (None,-6.8e-05,1.0)']]
+        tmp = self.featureDataframe[['botness','influence']]
         tmp
-        self.cascadeDataframe.drop([c for c in ['botness','influence (None,-6.8e-05,1.0)'] if c in self.cascadeDataframe.columns], axis=1, inplace=True)
+        self.cascadeDataframe.drop([c for c in ['botness','influence'] if c in self.cascadeDataframe.columns], axis=1, inplace=True)
         self.cascadeDataframe = self.cascadeDataframe.join(tmp, on='user_id', lsuffix='l')
         self.cascadeDataframe.drop_duplicates(subset=['user_id','cascade_id'], inplace=True)
         return self.cascadeDataframe
