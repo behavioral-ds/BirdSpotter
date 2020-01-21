@@ -102,7 +102,7 @@ g = g.plot_joint(plt.scatter, color=colors, edgecolor="#a1cfcf")
 g.plot_marginals(sns.distplot, kde=False, color="#c9245d")
 ```
 
-<img src="https://raw.githubusercontent.com/behavioral-ds/BirdSpotter/master/static/birdspotter_example_plot.png" alt="scatterplot" width="150"/> 
+<img src="https://raw.githubusercontent.com/behavioral-ds/BirdSpotter/master/static/birdspotter_example_plot.png" alt="scatterplot"/> 
 
 We can see from the above plot that only a fraction of the users are considered to have influence, which is consistent with how users behave on twitter, where many tweets do not garner retweets.
 The marginal distribution on the top of the x-axis suggets that `botness` is normal, with a longer tail toward the left.
