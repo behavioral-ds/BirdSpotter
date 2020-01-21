@@ -42,8 +42,71 @@ cascades = bs.getCascadesDataFrame()
 ##### This dataframe includes the expected structure of the retweet cascade as given by Rizoiu et al. (2018) via the column `expected_parent` in this dataframe.
 
 ## Analysis
+We can now check the users with the highest (and lowest) botness:
+```python
+bs.featureDataframe[['screen_name', 'botness']].sort_values(by='botness', ascending=False)
+```
+
+| user_id    | screen_name    | botness  | 
+|------------|----------------|----------| 
+| 233703296  | fletchersamf   | 0.909293 | 
+| 83661026   | Dawnhomes      | 0.903377 | 
+| 791998387  | rnmmm_         | 0.896476 | 
+| 889935433  | hillsidepaul   | 0.893082 | 
+| 389418311  | tabbycats4     | 0.884687 | 
+| ...        | ...            | ...      | 
+| 430023390  | LooWeeeza      | 0.179779 | 
+| 2343382280 | AntiLibDems    | 0.165497 | 
+| 244302832  | LewMarshallsay | 0.163851 | 
+| 258468459  | emelyeppparker | 0.156063 | 
+| 246382492  | DanShatford    | 0.152157 | 
 
 
+We visit some of these accounts to see if their botness aligns with our intuition.
+On inspection, we see that `Dawnhomes` retweets at an exceptional rate and has a conspiratorial vibe. This seems to be automated to some extent.
+`rnmmm_` retweet spams a single account, suggesting it is also automated. On the otherside, `DanShatford` seems like a real human, who tweets occasionally and has pictures of himself and friends on his profile.
+
+In the same way we can check the users with the highest (and lowest) influence:
+```python
+bs.featureDataframe[['screen_name', 'influence']].sort_values(by='influence', ascending=False)
+```
+
+| user_id    | screen_name   | influence  |
+|------------|---------------|------------|
+| 43503      | JamesWallis   | 491.000000 |
+| 7076492    | Glinner       | 487.562406 |
+| 27110209   | GeorgetteLock | 430.000000 |
+| 2384252054 | djhenshall    | 274.724062 |
+| 603915132  | stephcraig_   | 269.555732 |
+| ...        | ...           | ...        |
+| 424432213  | ErikZoha      | 1.000000   |
+| 424395065  | robevansz     | 1.000000   |
+| 424296291  | TathamJoanne  | 1.000000   |
+| 423794014  | matty2992     | 1.000000   |
+| 355044262  | DWTODWFA      | 1.000000   |
+
+Again, we visit this some accounts to verify our intuitions. `Glinner` is a blogger who writes long articles and shares these through her twitter account. It seems reasonable that she is influential. `JamesWallis` is a CEO, lecturer and writer so his influence score also seems to fit.
+
+We can also see the interaction between `botness` and `influence` by plotting this:
+```python
+import seaborn as sns
+# We first get the influence in percentile form
+bs.featureDataframe['influence percentile'] = bs.featureDataframe['influence'].rank(pct=True)
+
+# We map the follower counts to colours
+colors = sns.light_palette("#a1cfcf", input="hex", as_cmap=True)(bs.featureDataframe['followers_count'])
+
+# We finally plot
+g = sns.JointGrid(data=bs.featureDataframe, x="botness", y="influence percentile")
+g = g.plot_joint(plt.scatter, color=colors, edgecolor="#a1cfcf")
+g.plot_marginals(sns.distplot, kde=False, color="#c9245d")
+```
+
+<img src="https://raw.githubusercontent.com/behavioral-ds/BirdSpotter/master/static/birdspotter_example_plot.png" alt="scatterplot" width="150"/> 
+
+We can see from the above plot that only a fraction of the users are considered to have influence, which is consistent with how users behave on twitter, where many tweets do not garner retweets.
+The marginal distribution on the top of the x-axis suggets that `botness` is normal, with a longer tail toward the left.
+Finally, the hue of the nodes show that higher influence is correlated with higher follower counts, however there are apparent exceptions.
 
 ## How to train the classifier with your own botness data
 `birdspotter` provides functionality for training the botness detector with your own training data. After extracting the tweets, we run:
