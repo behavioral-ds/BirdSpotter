@@ -199,8 +199,10 @@ class BirdSpotter:
                     temp_cascade['follower_count'] = j['user']['followers_count']
                     temp_cascade['status_text'] = temp_text
                     temp_cascade['screen_name'] = j['user']['screen_name']
+                    temp_cascade['hashtag_entities'] = [e['text'] for e in j['entities']['hashtags']]
                     
                     temp_user['screen_name'] = j['user']['screen_name']
+                    temp_user['url'] = j['user']['profile_image_url_https']
                     temp_user['description'] = j['user']['description']
                     temp_user['followers_count'] = j['user']['followers_count']    
 
@@ -215,7 +217,8 @@ class BirdSpotter:
                         temp_user[key] = j['user'][key]
                     temp_user['verified'] = 1 if j['user']['verified'] else 0
                     temp_user['ff_ratio'] = (temp_user['followers_count'] + 1)/(temp_user['followers_count'] + temp_user['friends_count'] + 1)
-                    temp_user['years_on_twitter'] = (datetime.now() - datetime.strptime(j['user']['created_at'], '%a %b %d %H:%M:%S +0000 %Y')).days/365
+                    n = datetime.now()
+                    temp_user['years_on_twitter'] = (datetime(n.year, n.month, n.day) - datetime.strptime(j['user']['created_at'], '%a %b %d %H:%M:%S +0000 %Y')).days/365
                     temp_user['statuses_rate'] = (temp_user['statuses_count'] + 1)/(temp_user['years_on_twitter'] + .001)
                     temp_user['tweets_to_followers'] = (temp_user['statuses_count'] + 1)/(temp_user['followers_count'] + 1)
                     temp_user['retweet_count'] = j['retweet_count']
@@ -265,8 +268,9 @@ class BirdSpotter:
         #Computes the features for all the hashtags. Is currently not protected from namespace errors.
         self.hashtagDataframe = self.__computeHashtagFeatures(contentDataframe)
         if 'influence' in self.hashtagDataframe.columns:
-            self.hashtagDataframe.drop('influence', inplace=True)
+            self.hashtagDataframe.drop('influence', axis=1, inplace=True)
         self.featureDataframe = self.featureDataframe.join(self.hashtagDataframe, rsuffix='_hashtag')
+        self.featureDataframe = self.featureDataframe[~self.featureDataframe.index.duplicated()]
         return self.featureDataframe
 
     def getBotAnnotationTemplate(self, filename="annotationTemplate.csv"):
@@ -454,6 +458,7 @@ class BirdSpotter:
             g['min_time'] = g['min_time'].values.astype('datetime64[s]')
             g['diff'] = g['timestamp'].sub(g['min_time'], axis=0)
             g['time'] = g['diff'].dt.total_seconds()
+            g['time'] = g['time'] - np.min(g['time'])
             g = g.sort_values(by=['time'])
             cascades.append(g)
             if not self.quiet:
@@ -461,7 +466,7 @@ class BirdSpotter:
         if not self.quiet:
             pbar.close()
         self.cascadeDataframe = pd.concat(cascades)
-        self.cascadeDataframe = self.cascadeDataframe[['magnitude', 'time', 'user_id', 'screen_name', 'status_text', 'cascade_id']]
+        self.cascadeDataframe = self.cascadeDataframe[['magnitude', 'time', 'user_id', 'screen_name', 'status_text', 'cascade_id','created_at', 'hashtag_entities']]
         self.cascadeDataframe.sort_values(by=['cascade_id', 'time'])
         return self.cascadeDataframe
 
