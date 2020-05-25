@@ -1,13 +1,13 @@
-tqdm
-wget
-simplejson
+ijson
 numpy
 pandas
 python-dateutil
 pytz
 scikit-learn
 scipy
+simplejson
 six
 sklearn
-ijson
+tqdm
+wget
 xgboost==0.81
