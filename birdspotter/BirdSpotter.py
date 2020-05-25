@@ -268,7 +268,7 @@ class BirdSpotter:
         #Computes the features for all the hashtags. Is currently not protected from namespace errors.
         self.hashtagDataframe = self.__computeHashtagFeatures(contentDataframe)
         if 'influence' in self.hashtagDataframe.columns:
-            self.hashtagDataframe.drop('influence', axis=1, inplace=True)
+            self.hashtagDataframe.drop('influence', axis=1, inplace=True, errors='ignore')
         self.featureDataframe = self.featureDataframe.join(self.hashtagDataframe, rsuffix='_hashtag')
         self.featureDataframe = self.featureDataframe[~self.featureDataframe.index.duplicated()]
         return self.featureDataframe
@@ -471,7 +471,7 @@ class BirdSpotter:
         return self.cascadeDataframe
 
 
-    def getInfluenceScores(self, time_decay = -0.000068, alpha = None, beta = 1.0):
+    def getInfluenceScores(self, params={'time_decay' : -0.000068, 'alpha' : None, 'beta' : 1.0}):
         """Adds a specified influence score to feature dataframe
         
         The specified influence will appear in the returned feature df, under the column 'influence (<alpha>,<time_decay>,<beta>)'.
@@ -506,10 +506,9 @@ class BirdSpotter:
         for i, g in groups:
             g = g.reset_index(drop=True)
             p = P(cascade=g, alpha=alpha, r=time_decay, beta=beta)
-            self.p = p/(alpha if alpha else 1)
-            inf, m = influence(p, alpha)
+            inf, _ = influence(p, alpha)
             g[column_name] = pd.Series(inf)
-            g['expected_parent'] = pd.Series(g['user_id'][list(np.argmax(self.p, axis=0))].values)
+            g['expected_parent'] = pd.Series(g['user_id'][list(np.argmax(p, axis=0))].values)
             cascades.append(g)
             if not self.quiet:
                 pbar.update(1)
