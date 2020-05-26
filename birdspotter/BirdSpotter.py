@@ -267,8 +267,6 @@ class BirdSpotter:
         
         #Computes the features for all the hashtags. Is currently not protected from namespace errors.
         self.hashtagDataframe = self.__computeHashtagFeatures(contentDataframe)
-        if 'influence' in self.hashtagDataframe.columns:
-            self.hashtagDataframe.drop('influence', axis=1, inplace=True, errors='ignore')
         self.featureDataframe = self.featureDataframe.join(self.hashtagDataframe, rsuffix='_hashtag')
         self.featureDataframe = self.featureDataframe[~self.featureDataframe.index.duplicated()]
         return self.featureDataframe
