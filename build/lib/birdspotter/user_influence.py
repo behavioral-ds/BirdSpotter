@@ -27,7 +27,7 @@ def casIn(cascade, time_decay = -0.000068, alpha = None, beta = 1.0):
     return cascade
 
 
-def P(cascade, alpha = None, r = -0.000068, beta = 1.0):
+def P(cascade, r = -0.000068, beta = 1.0):
     """Computes the P matrix of a cascade 
     
     The P matrix describes the stochastic retweet graph.
@@ -36,8 +36,6 @@ def P(cascade, alpha = None, r = -0.000068, beta = 1.0):
     ----------
     cascade : DataFrame
         A dataframe describing a single cascade, with a time column ascending from 0, a magnitude column and index of user ids
-    alpha : float, optional
-        A float between 0 and 1, as described in the paper. If None DebateNight method is used, else spatial-decay method, by default None
     r : float, optional
         The time-decay r parameter described in the paper, by default -0.000068
     beta : float, optional
@@ -67,7 +65,6 @@ def P(cascade, alpha = None, r = -0.000068, beta = 1.0):
         p[:k, k] = ((r * (t[k] - t[0:k])) + np.log(f[0:k])) # store the P_ji in log space
         norm[k] = reduce(np.logaddexp, p[:k, k])
         p[:k, k] = np.exp(p[:k, k] - norm[k])# recover the P_ji from log space
-    p *= (alpha if alpha else 1)
     return p
 
 
@@ -88,6 +85,7 @@ def influence(p, alpha = None):
     array-like, array-like
         A n-array describing the influence of n users/tweets and the (n,n)-array describing the intermediary contribution of influence between tweets
     """    
+    p *= (alpha if alpha else 1)
     n = len(p)
     m = np.zeros((n, n))
     m[0, 0] = 1

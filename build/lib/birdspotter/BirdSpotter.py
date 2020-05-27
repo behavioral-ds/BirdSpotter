@@ -168,14 +168,15 @@ class BirdSpotter:
         raw_tweets = []
         with open(filePath, encoding="utf-8") as f:
             if fileextension == '.jsonl':
-                raw_tweets = map(simplejson.loads, list(islice(f, tweetLimit)))
+                raw_tweets = list(map(simplejson.loads, list(islice(f, tweetLimit))))
             elif fileextension == '.json':
                 raw_tweets = list(islice(ijson.items(f, 'item'),tweetLimit))
             else:
                 raise Exception('Not a valid tweet dump. Needs to be either jsonl or json, with the extension explicit.')
             if not self.quiet:
                 pbar = tqdm()
-            for j in raw_tweets:
+            original_tweets = [j['retweeted_status'] for j in raw_tweets if 'retweeted_status' in j]
+            for j in raw_tweets+original_tweets:
                 if not self.quiet:
                     pbar.update(1)
                 try:
@@ -267,8 +268,6 @@ class BirdSpotter:
         
         #Computes the features for all the hashtags. Is currently not protected from namespace errors.
         self.hashtagDataframe = self.__computeHashtagFeatures(contentDataframe)
-        if 'influence' in self.hashtagDataframe.columns:
-            self.hashtagDataframe.drop('influence', axis=1, inplace=True)
         self.featureDataframe = self.featureDataframe.join(self.hashtagDataframe, rsuffix='_hashtag')
         self.featureDataframe = self.featureDataframe[~self.featureDataframe.index.duplicated()]
         return self.featureDataframe
@@ -289,7 +288,7 @@ class BirdSpotter:
             A dataframe of the users, with their screen names and a blank "is_bot" column.
 
         """
-        csv_data = (self.cascadeDataframe.groupby(['screen_name', 'user_id']).apply(lambda d: '').reset_index(name='isbot'))
+        csv_data = self.cascadeDataframe.groupby(['screen_name', 'user_id']).apply(lambda d: '').reset_index(name='isbot')
         csv_data.to_csv(filename)
         return csv_data
 
@@ -359,7 +358,19 @@ class BirdSpotter:
         """        
         booster = xgb.Booster()
         booster.load_model(fname)
-        self.clf = booster
+        self.booster = booster
+
+
+    def loadPickledBooster(self, fname):
+        """Loads the pickled booster model
+        
+        Parameters
+        ----------
+        fname : str
+            The path to the pickled xgboost booster
+        """        
+        with open(fname, 'rb') as rf:
+            return pk.load(rf)
 
     def trainClassifierModel(self, labelledDataPath, targetColumnName='isbot', saveFileName=None):
         """Trains the bot detection classifier.
@@ -401,12 +412,11 @@ class BirdSpotter:
             botTarget = botrnot[targetColumnName]
         else:
             raise Exception("The target column was not specified and cannot be found in the data. Please specify your target column accordingly.")
-        self.columnNameIntersection = list(set(self.featureDataframe.columns.values).intersection(set(botrnot.columns.values)))
-        botrnot = botrnot[self.columnNameIntersection]
+        botrnot = botrnot[self.booster.feature_names]
         train = xgb.DMatrix(botrnot.values, botTarget.values, feature_names=botrnot.columns.values)
-        self.clf = xgb.train(params, train, 80)
+        self.booster = xgb.train(params, train, 80)
         if saveFileName is not None:
-            self.clf.save_model(saveFileName)
+            self.booster.save_model(saveFileName)
 
     def getBotness(self):
         """Adds the botness of users to the feature dataframe. 
@@ -423,18 +433,15 @@ class BirdSpotter:
         Exception
             Tweets haven't been extracted yet. Need to run extractTweets.
         """        
-        if not hasattr(self, 'clf'):
-            self.loadClassifierModel(os.path.join(os.path.dirname(__file__), 'data', 'pretrained_botness_model.xgb'))
+        if not hasattr(self, 'booster'):
+            self.booster = self.loadPickledBooster(os.path.join(os.path.dirname(__file__), 'data', 'oversampled_booster.pickle'))
         if not hasattr(self, 'featureDataframe'):
             raise Exception("Tweets haven't been extracted yet")
-        if not hasattr(self, 'columnNameIntersection'):
-            with open(os.path.join(os.path.dirname(__file__), 'data', 'standard_bot_features'), 'r') as f:
-                standard_bot_features = set(f.read().splitlines())
-                self.columnNameIntersection = list(set(self.featureDataframe.columns.values).intersection(standard_bot_features))
-        testdf = self.featureDataframe[self.columnNameIntersection]
-        test = xgb.DMatrix(testdf.values, feature_names=self.columnNameIntersection)
+        # columnNameIntersection = set(self.featureDataframe.columns.values).intersection(set(self.booster.feature_names))
+        testdf = self.featureDataframe.reindex(columns=self.booster.feature_names)
+        test = xgb.DMatrix(testdf.values, feature_names=self.booster.feature_names)
         bdf = pd.DataFrame()
-        bdf['botness'] = self.clf.predict(test)
+        bdf['botness'] = self.booster.predict(test)
         bdf['user_id'] = testdf.index
         __botnessDataframe = bdf.set_index('user_id')
         self.featureDataframe = self.featureDataframe.join(__botnessDataframe) 
@@ -451,7 +458,9 @@ class BirdSpotter:
             pbar = tqdm(total=len(groups))
         # Group the tweets by id
         for i, g in groups:
-            g = g.reset_index()
+            g.drop_duplicates(subset ="user_id", 
+                     keep = 'last', inplace = True) 
+            g = g.reset_index(drop=True)
             min_time = dateutil.parser.parse(g['original_created_at'][0])
             g['timestamp'] = pd.to_datetime(g['created_at']).values.astype('datetime64[s]')
             g['min_time'] = min_time
@@ -471,7 +480,7 @@ class BirdSpotter:
         return self.cascadeDataframe
 
 
-    def getInfluenceScores(self, time_decay = -0.000068, alpha = None, beta = 1.0):
+    def getInfluenceScores(self, params={'time_decay' : -0.000068, 'alpha' : None, 'beta' : 1.0}):
         """Adds a specified influence score to feature dataframe
         
         The specified influence will appear in the returned feature df, under the column 'influence (<alpha>,<time_decay>,<beta>)'.
@@ -495,6 +504,7 @@ class BirdSpotter:
         Exception
             Tweets haven't been extracted yet. Need to run extractTweets.
         """        
+        alpha, beta, time_decay = params['alpha'], params['beta'], params['time_decay']
         column_name = ("influence" if alpha == None and time_decay == -0.000068 and beta == 1.0 else 'influence ('+str(alpha)+','+str(time_decay)+','+str(beta)+')')
         if not hasattr(self, 'cascadeDataframe'):
             raise Exception("Tweets haven't been extracted yet")
@@ -504,12 +514,11 @@ class BirdSpotter:
         if not self.quiet:
             pbar = tqdm(total=len(groups))
         for i, g in groups:
-            g = g.reset_index()
-            p = P(cascade=g, alpha=alpha, r=time_decay, beta=beta)
-            self.p = p/(alpha if alpha else 1)
-            inf, m = influence(p, alpha)
+            g = g.reset_index(drop=True)
+            p = P(cascade=g, r=time_decay, beta=beta)
+            inf, _ = influence(p, alpha)
             g[column_name] = pd.Series(inf)
-            g['expected_parent'] = pd.Series(g['user_id'][list(np.argmax(self.p, axis=0))].values)
+            g['expected_parent'] = pd.Series(g['user_id'][list(np.argmax(p, axis=0))].values)
             cascades.append(g)
             if not self.quiet:
                 pbar.update(1)
@@ -542,8 +551,8 @@ class BirdSpotter:
         """
         if not hasattr(self, 'featureDataframe'):
             raise Exception("Tweets haven't been extracted yet")
-        if not hasattr(self, 'clf'):
-            self.loadClassifierModel(os.path.join(os.path.dirname(__file__), 'data', 'pretrained_botness_model.xgb'))
+        if not hasattr(self, 'booster'):
+            self.booster = self.loadPickledBooster(os.path.join(os.path.dirname(__file__), 'data', 'oversampled_booster.pickle'))
         if 'botness' not in self.featureDataframe.columns:
             self.getBotness()
         if 'influence' not in self.featureDataframe.columns:

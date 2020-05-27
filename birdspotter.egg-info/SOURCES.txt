@@ -12,5 +12,4 @@ birdspotter.egg-info/SOURCES.txt
 birdspotter.egg-info/dependency_links.txt
 birdspotter.egg-info/requires.txt
 birdspotter.egg-info/top_level.txt
-birdspotter/data/pretrained_botness_model.xgb
-birdspotter/data/standard_bot_features
+birdspotter/data/oversampled_booster.pickle
