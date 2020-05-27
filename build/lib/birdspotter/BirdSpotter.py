@@ -168,14 +168,15 @@ class BirdSpotter:
         raw_tweets = []
         with open(filePath, encoding="utf-8") as f:
             if fileextension == '.jsonl':
-                raw_tweets = map(simplejson.loads, list(islice(f, tweetLimit)))
+                raw_tweets = list(map(simplejson.loads, list(islice(f, tweetLimit))))
             elif fileextension == '.json':
                 raw_tweets = list(islice(ijson.items(f, 'item'),tweetLimit))
             else:
                 raise Exception('Not a valid tweet dump. Needs to be either jsonl or json, with the extension explicit.')
             if not self.quiet:
                 pbar = tqdm()
-            for j in raw_tweets:
+            original_tweets = [j['retweeted_status'] for j in raw_tweets if 'retweeted_status' in j]
+            for j in raw_tweets+original_tweets:
                 if not self.quiet:
                     pbar.update(1)
                 try:
@@ -457,6 +458,8 @@ class BirdSpotter:
             pbar = tqdm(total=len(groups))
         # Group the tweets by id
         for i, g in groups:
+            g.drop_duplicates(subset ="user_id", 
+                     keep = 'last', inplace = True) 
             g = g.reset_index(drop=True)
             min_time = dateutil.parser.parse(g['original_created_at'][0])
             g['timestamp'] = pd.to_datetime(g['created_at']).values.astype('datetime64[s]')
