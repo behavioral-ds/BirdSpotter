@@ -19,8 +19,11 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import CountVectorizer
 import dateutil
 from birdspotter.user_influence import P, influence
-from itertools import islice
+import itertools
 import ijson
+import multiprocessing as mp
+
+tqdm.pandas()
 
 class BirdSpotter:
     """Birdspotter measures the social influence and botness of twitter users.
@@ -46,29 +49,31 @@ class BirdSpotter:
         tweetLimit : int, optional
             A limit on the number of tweets to process if the tweet dump is too large, if None then all tweets are processed, by default None
         embeddings : collections.Mapping or str, optional
-            A method for loading word2vec embeddings, which accepts are path to embeddings, a mapping object or a pickle object. Refer to setWord2VecEmbeddings for details. By default 'download'
+            A method for loading word2vec embeddings, which accepts are path to embeddings, a mapping object or a pickle object. Refer to set_word_embeddings for details. By default 'download'
         quiet : bool, optional
             Determines if debug statements will be printed or not, by default False
         """        
-        self.word2vecEmbeddings = None
+        self.word_embeddings = None
         self.quiet = quiet
         self.extractTweets(path,  tweetLimit = tweetLimit, embeddings=embeddings)
 
     def __pprint(self, message):
+        """Print's statements to stdout if the quiet parameter is False 
+        """
         if not self.quiet:
             print(message)
 
-    def setWord2VecEmbeddings(self, embeddings='download', forceReload=True):
+    def set_word_embeddings(self, embeddings='download', force_reload=True):
         """Sets the word2vec embeddings. The embeddings can be a path to a pickle or txt file, a mapping object or the string 'download' which will automatically download and use the FastText 'wiki-news-300d-1M.vec' if not available in the current path.
         
         Parameters
         ----------
         embeddings : collections.Mapping or str or None, optional
-            A method for loading word2vec embeddings. A path to a embeddings pickle or txt file, a mapping object, the string 'download', by default 'download'. If None, it does nothing.
-        forceReload : bool, optional
-            If the embeddings are already set, forceReload determines whether to update them, by default True
+            A method for loading word2vec embeddings. A path to a embeddings pickle or txt file, a mapping object, or the string 'download', by default 'download'. If None, it does nothing.
+        force_reload : bool, optional
+            If the embeddings are already set, force_reload determines whether to update them, by default True
         """
-        if not forceReload and self.word2vecEmbeddings is not None:
+        if not force_reload and self.word_embeddings is not None:
             return
         if embeddings is None:
             return
@@ -88,7 +93,7 @@ class BirdSpotter:
                             pbar.update(1)
                     if not self.quiet:
                         pbar.close()
-                    self.word2vecEmbeddings = model
+                    self.word_embeddings = model
                 self.__pprint("Finished loading Word2Vec Embeddings")
             else:
                 try:
@@ -111,7 +116,7 @@ class BirdSpotter:
                                 pbar.update(1)
                         if not self.quiet:
                             pbar.close()
-                        self.word2vecEmbeddings = model
+                        self.word_embeddings = model
                     self.__pprint("Finished loading Word2Vec Embeddings")
                 except Exception as e:
                     print(e)
@@ -121,7 +126,7 @@ class BirdSpotter:
             if fileextension == '.pickle':
                 self.__pprint("Loading Word2Vec Embeddings...")
                 with open(embeddingsPath,"rb") as f:
-                    self.word2vecEmbeddings = pk.load(f)
+                    self.word_embeddings = pk.load(f)
                 self.__pprint("Finished loading Word2Vec Embeddings")
             elif fileextension == '.txt':
                 self.__pprint("Loading Word2Vec Embeddings...")
@@ -132,11 +137,72 @@ class BirdSpotter:
                         word = splitLine[0]
                         embedding = np.array([float(val) for val in splitLine[1:]])
                         model[word] = embedding
-                    self.word2vecEmbeddings = model
+                    self.word_embeddings = model
                 self.__pprint("Finished loading Word2Vec Embeddings")
         elif isinstance(embeddings, collections.Mapping):
-            self.word2vecEmbeddings = embeddings
+            self.word_embeddings = embeddings
     
+    def process_tweet(self, j):
+        temp_user = {}
+        temp_tweet = {}
+        temp_text = (j['text'] if 'text' in j.keys() else j['full_text'])
+        temp_content = {'status_text': temp_text, 'user_id' : j['user']['id_str']}
+        temp_description = {'description':j['user']['description'], 'user_id' : j['user']['id_str']}
+        temp_cascade = {}
+        
+        if 'retweeted_status' in j:
+            temp_cascade['cascade_id'] = j['retweeted_status']['id_str']
+            temp_cascade['original_created_at'] = j['retweeted_status']['created_at']
+            temp_cascade['created_at'] = j['created_at']
+            temp_cascade['retweeted'] = True
+            original_tweet_processed = self.process_tweet(j['retweeted_status'])[0]
+            # original_tweet_processed = None
+
+        else:
+            temp_cascade['cascade_id'] = j['id_str']
+            temp_cascade['original_created_at'] = j['created_at']
+            temp_cascade['created_at'] = j['created_at']
+            temp_cascade['retweeted'] = False 
+
+        temp_cascade['follower_count'] = j['user']['followers_count']
+        temp_cascade['status_text'] = temp_text
+        temp_cascade['screen_name'] = j['user']['screen_name']
+        temp_cascade['hashtag_entities'] = [e['text'] for e in j['entities']['hashtags']]
+        
+        temp_user['screen_name'] = j['user']['screen_name']
+        temp_user['url'] = j['user']['profile_image_url_https']
+        temp_user['description'] = j['user']['description']
+        temp_user['followers_count'] = j['user']['followers_count']    
+
+        temp_cascade['user_id'] = j['user']['id_str']
+        temp_user['user_id'] = j['user']['id_str']
+        temp_tweet['user_id'] = j['user']['id_str']
+
+        temp_user.update(getTextFeatures('name',j['user']['name']))
+        temp_user.update(getTextFeatures('location',j['user']['location']))
+        temp_user.update(getTextFeatures('description',j['user']['description']))
+        for key in ['statuses_count', 'listed_count', 'friends_count', 'followers_count']:
+            temp_user[key] = j['user'][key]
+        temp_user['verified'] = 1 if j['user']['verified'] else 0
+        temp_user['ff_ratio'] = (temp_user['followers_count'] + 1)/(temp_user['followers_count'] + temp_user['friends_count'] + 1)
+        n = datetime.now()
+        temp_user['years_on_twitter'] = (datetime(n.year, n.month, n.day) - datetime.strptime(j['user']['created_at'], '%a %b %d %H:%M:%S +0000 %Y')).days/365
+        temp_user['statuses_rate'] = (temp_user['statuses_count'] + 1)/(temp_user['years_on_twitter'] + .001)
+        temp_user['tweets_to_followers'] = (temp_user['statuses_count'] + 1)/(temp_user['followers_count'] + 1)
+        temp_user['retweet_count'] = j['retweet_count']
+        temp_user['favorite_count'] = j['favorite_count']
+        temp_user['favourites_count'] = j['user']['favourites_count']
+
+        temp_tweet.update(getTextFeatures('status_text',temp_text))
+        temp_tweet['n_tweets'] = 1 if 'retweeted_status' in j and ('quoted_status_is' in j) else 0
+        temp_tweet['n_retweets'] = 1 if 'retweeted_status' in j else 0
+        temp_tweet['n_quotes'] = 1 if 'quoted_status_id' in j else 0
+        temp_tweet['n_timeofday'] = hourofweekday(j['created_at'])
+        temp_tweet.update(getSource(j['source']))
+
+        res = (temp_user, temp_tweet, temp_content,  temp_description,  temp_cascade)
+        return ([res, original_tweet_processed] if 'retweeted_status' in j else [res])
+
     def extractTweets(self, filePath, tweetLimit = None, embeddings='download'):
         """Extracts tweets from a json or jsonl file and generates cascade, feature and hashtag dataframes as class attributes.
         
@@ -156,92 +222,44 @@ class BirdSpotter:
         DataFrame
             A dataframe of user's botness and influence scores (and other features).
         """        
-        # Appending DataFrames line by line is inefficient, because it generates a
-        # new dataframe each time. It better to get the entire list and them concat.
-        user_list = []
-        tweet_list = []
-        w2v_content_list = []
-        w2v_description_list = []
-        cascade_list = []
         self.__pprint("Starting Tweet Extraction")
+
         _,fileextension = os.path.splitext(filePath)
         raw_tweets = []
+
+        def get_islice(iter):
+            if tweetLimit != None:
+                yield from itertools.islice(iter, tweetLimit)
+            yield from iter
+        
         with open(filePath, encoding="utf-8") as f:
             if fileextension == '.jsonl':
-                raw_tweets = list(map(simplejson.loads, list(islice(f, tweetLimit))))
+                raw_tweets = map(simplejson.loads, get_islice(f))
             elif fileextension == '.json':
-                raw_tweets = list(islice(ijson.items(f, 'item'),tweetLimit))
+                raw_tweets = get_islice(ijson.items(f, 'item'))
             else:
-                raise Exception('Not a valid tweet dump. Needs to be either jsonl or json, with the extension explicit.')
-            if not self.quiet:
-                pbar = tqdm()
-            original_tweets = [j['retweeted_status'] for j in raw_tweets if 'retweeted_status' in j]
-            for j in raw_tweets+original_tweets:
-                if not self.quiet:
-                    pbar.update(1)
-                try:
-                    temp_user = {}
-                    temp_tweet = {}
-                    temp_text = (j['text'] if 'text' in j.keys() else j['full_text'])
-                    temp_content = {'status_text': temp_text, 'user_id' : j['user']['id_str']}
-                    temp_description = {'description':j['user']['description'], 'user_id' : j['user']['id_str']}
-                    temp_cascade = {}
-                    
-                    if 'retweeted_status' in j:
-                        temp_cascade['cascade_id'] = j['retweeted_status']['id_str']
-                        temp_cascade['original_created_at'] = j['retweeted_status']['created_at']
-                        temp_cascade['created_at'] = j['created_at']
-                        temp_cascade['retweeted'] = True
-                    else:
-                        temp_cascade['cascade_id'] = j['id_str']
-                        temp_cascade['original_created_at'] = j['created_at']
-                        temp_cascade['created_at'] = j['created_at']
-                        temp_cascade['retweeted'] = False    
-                    temp_cascade['follower_count'] = j['user']['followers_count']
-                    temp_cascade['status_text'] = temp_text
-                    temp_cascade['screen_name'] = j['user']['screen_name']
-                    temp_cascade['hashtag_entities'] = [e['text'] for e in j['entities']['hashtags']]
-                    
-                    temp_user['screen_name'] = j['user']['screen_name']
-                    temp_user['url'] = j['user']['profile_image_url_https']
-                    temp_user['description'] = j['user']['description']
-                    temp_user['followers_count'] = j['user']['followers_count']    
-
-                    temp_cascade['user_id'] = j['user']['id_str']
-                    temp_user['user_id'] = j['user']['id_str']
-                    temp_tweet['user_id'] = j['user']['id_str']
-
-                    temp_user.update(getTextFeatures('name',j['user']['name']))
-                    temp_user.update(getTextFeatures('location',j['user']['location']))
-                    temp_user.update(getTextFeatures('description',j['user']['description']))
-                    for key in ['statuses_count', 'listed_count', 'friends_count', 'followers_count']:
-                        temp_user[key] = j['user'][key]
-                    temp_user['verified'] = 1 if j['user']['verified'] else 0
-                    temp_user['ff_ratio'] = (temp_user['followers_count'] + 1)/(temp_user['followers_count'] + temp_user['friends_count'] + 1)
-                    n = datetime.now()
-                    temp_user['years_on_twitter'] = (datetime(n.year, n.month, n.day) - datetime.strptime(j['user']['created_at'], '%a %b %d %H:%M:%S +0000 %Y')).days/365
-                    temp_user['statuses_rate'] = (temp_user['statuses_count'] + 1)/(temp_user['years_on_twitter'] + .001)
-                    temp_user['tweets_to_followers'] = (temp_user['statuses_count'] + 1)/(temp_user['followers_count'] + 1)
-                    temp_user['retweet_count'] = j['retweet_count']
-                    temp_user['favorite_count'] = j['favorite_count']
-                    temp_user['favourites_count'] = j['user']['favourites_count']
-
-                    temp_tweet.update(getTextFeatures('status_text',temp_text))
-                    temp_tweet['n_tweets'] = 1 if 'retweeted_status' in j and ('quoted_status_is' in j) else 0
-                    temp_tweet['n_retweets'] = 1 if 'retweeted_status' in j else 0
-                    temp_tweet['n_quotes'] = 1 if 'quoted_status_id' in j else 0
-                    temp_tweet['n_timeofday'] = hourofweekday(j['created_at'])
-                    temp_tweet.update(getSource(j['source']))
-
-                    user_list.append(temp_user)
-                    tweet_list.append(temp_tweet)
-                    w2v_content_list.append(temp_content)
-                    w2v_description_list.append(temp_description)
-                    cascade_list.append(temp_cascade)
-                except Exception as err:
-                    traceback.print_tb(err.__traceback__)
-            if not self.quiet:
-                pbar.close()
+                    raise Exception('Not a valid tweet dump. Needs to be either jsonl or json, with the extension explicit.')
+                # original_tweets = [j['retweeted_status'] for j in raw_tweets if 'retweeted_status' in j]
+            # def run_in_parallel(func, seq):
+            #     try:
+            #         cpus = mp.cpu_count()
+            #     except NotImplementedError:
+            #         cpus = 4   # arbitrary default
+            #     with mp.Pool(processes=cpus) as pool:
+            #         return pool.apply(func, seq)
+            
+            user_list = []
+            tweet_list = []
+            w2v_content_list = []
+            w2v_description_list = []
+            cascade_list = []
+            for temp_user, temp_tweet, temp_content,  temp_description,  temp_cascade in itertools.chain(*map(self.process_tweet, tqdm(raw_tweets))):
+                user_list.append(temp_user)
+                tweet_list.append(temp_tweet)
+                w2v_content_list.append(temp_content)
+                w2v_description_list.append(temp_description)
+                cascade_list.append(temp_cascade)
+            
         # We are assuming that user data doesn't change much and if it does, we take that 'latest' as our feature
         userDataframe = pd.DataFrame(user_list).fillna(0).set_index('user_id')
         userDataframe = userDataframe[~userDataframe.index.duplicated(keep='last')]
@@ -260,9 +278,9 @@ class BirdSpotter:
         descriptionDataframe = pd.DataFrame(w2v_description_list).set_index('user_id')
         descriptionDataframe = descriptionDataframe[~descriptionDataframe.index.duplicated(keep='last')]
         
-        self.setWord2VecEmbeddings(embeddings, forceReload=False)
+        self.set_word_embeddings(embeddings, force_reload=False)
         self.featureDataframe = userDataframe.join(tweetDataframe)
-        if self.word2vecEmbeddings is not None:
+        if self.word_embeddings is not None:
             w2vDataframe = self.__computeVectors(contentDataframe, descriptionDataframe)
             self.featureDataframe = self.featureDataframe.join(w2vDataframe)
         
@@ -300,20 +318,21 @@ class BirdSpotter:
         vectorizer = CountVectorizer()
         X = vectorizer.fit_transform(crop)
         transformer = TfidfTransformer(smooth_idf=False)
-        tfidf = transformer.fit_transform(X)
+        tfidf = transformer.fit(X).transform(X)
         column_names = vectorizer.get_feature_names()
-        hashtagDataframe = pd.DataFrame(tfidf.toarray(), columns=column_names, index=userIndex)
+        hashtagDataframe = pd.DataFrame.sparse.from_spmatrix(tfidf, columns=column_names, index=userIndex)
+        print(hashtagDataframe.dtypes)
         return hashtagDataframe
 
     def __computeVectors(self, contentdf, descriptiondf):
         """Computes the word2vec features as a dataframe"""
         ud = {}
         for index,row in contentdf.iterrows():
-            vec = np.zeros(len(self.word2vecEmbeddings['a']))
+            vec = np.zeros(len(self.word_embeddings['a']))
             tol = 0
             for w in parse(row['status_text']):
-                if w in self.word2vecEmbeddings:
-                    vec = vec + np.array(self.word2vecEmbeddings[w])
+                if w in self.word_embeddings:
+                    vec = vec + np.array(self.word_embeddings[w])
                     tol += 1
             if tol != 0 and not np.isnan(tol):
                 vec = vec/tol
@@ -330,11 +349,11 @@ class BirdSpotter:
         
         ud = {}
         for index,row in descriptiondf.iterrows():
-            vec = np.zeros(len(self.word2vecEmbeddings['a']))
+            vec = np.zeros(len(self.word_embeddings['a']))
             tol = 0
             for w in parse(row['description']):
-                if w in self.word2vecEmbeddings:
-                    vec = vec + np.array(self.word2vecEmbeddings[w])
+                if w in self.word_embeddings:
+                    vec = vec + np.array(self.word_embeddings[w])
                     tol += 1
             if tol != 0 and not np.isnan(tol):
                 vec = vec/tol
@@ -372,7 +391,7 @@ class BirdSpotter:
         with open(fname, 'rb') as rf:
             return pk.load(rf)
 
-    def trainClassifierModel(self, labelledDataPath, targetColumnName='isbot', saveFileName=None):
+    def trainClassifierModel(self, labelledData, targetColumnName='isbot', saveFileName=None, update=False, iterations=100):
         """Trains the bot detection classifier.
 
         Trains the bot detection classifier, using an XGB classifier. 
@@ -380,12 +399,16 @@ class BirdSpotter:
 
         Parameters
         ----------
-        labelledDataPath : str
-            A path to the data with bot labels, as either csv or pickled dataframe
+        labelledData : str or pandas.DataFrame
+            A path to the data with bot labels, as either csv or pickled dataframe, or a dataframe
         targetColumnName : str
             The name of the column, describing whether a user is a bot or not, by default 'isbot'
         saveFileName : str, optional
             The path of the file, to save the XGB model binary, which can be loaded with loadClassifierModel, by default None
+        update : bool, optional
+            Determines whether data will improve current classifier or restart training, by default False
+        iterations : int, optional
+            Determines the number of times the classifier training will iterate through data, by default 100
 
         """
         params = {
@@ -399,22 +422,30 @@ class BirdSpotter:
         'silent':True,
         'seed' :27
         }
-
-        _,fileextension = os.path.splitext(labelledDataPath)
-        if fileextension == '.csv':
-            botrnot = pd.read_csv(labelledDataPath, sep ="\t")
-        elif fileextension == '.pickle':
-            with open(labelledDataPath,'rb') as f:
-                botrnot = pk.load(f)
+        if isinstance(labelledData, str):
+            _,fileextension = os.path.splitext(labelledData)
+            if fileextension == '.csv':
+                botrnot = pd.read_csv(labelledData, sep ="\t")
+            elif fileextension == '.pickle':
+                with open(labelledData,'rb') as f:
+                    botrnot = pk.load(f)
+        else:
+            botrnot = labelledData
         if 'is_bot' in botrnot.columns:
             botTarget = botrnot['is_bot']
+            del botrnot['is_bot']
         elif targetColumnName in botrnot.columns:
             botTarget = botrnot[targetColumnName]
+            del botrnot[targetColumnName]
         else:
             raise Exception("The target column was not specified and cannot be found in the data. Please specify your target column accordingly.")
-        botrnot = botrnot[self.booster.feature_names]
-        train = xgb.DMatrix(botrnot.values, botTarget.values, feature_names=botrnot.columns.values)
-        self.booster = xgb.train(params, train, 80)
+        if update:
+            botrnot.reindex(columns=bs.booster.feature_names)
+            update = xgb.DMatrix(botrnot.values, botTarget.values, feature_names=botrnot.columns.values)
+            self.booster.update(update, iterations)
+        else:
+            train = xgb.DMatrix(botrnot.values, botTarget.values, feature_names=botrnot.columns.values)
+            self.booster = xgb.train(params, train, iterations)
         if saveFileName is not None:
             self.booster.save_model(saveFileName)
 
@@ -437,7 +468,9 @@ class BirdSpotter:
             self.booster = self.loadPickledBooster(os.path.join(os.path.dirname(__file__), 'data', 'oversampled_booster.pickle'))
         if not hasattr(self, 'featureDataframe'):
             raise Exception("Tweets haven't been extracted yet")
-        # columnNameIntersection = set(self.featureDataframe.columns.values).intersection(set(self.booster.feature_names))
+        # Remove botness if it's already in the dataframe
+        if 'botness' in self.featureDataframe.columns:
+            del self.featureDataframe['botness']
         testdf = self.featureDataframe.reindex(columns=self.booster.feature_names)
         test = xgb.DMatrix(testdf.values, feature_names=self.booster.feature_names)
         bdf = pd.DataFrame()
@@ -448,18 +481,8 @@ class BirdSpotter:
         self.featureDataframe = self.featureDataframe[~self.featureDataframe.index.duplicated()]
         return self.featureDataframe
 
-    def __reformatCascadeDataframe(self):
-        """ Reformats the cascade dataframe for influence estimation"""
-        self.cascadeDataframe['magnitude'] = self.cascadeDataframe['follower_count']
-        cascades = []
-        groups = self.cascadeDataframe.groupby('cascade_id')
-        self.__pprint('Reformatting cascades')
-        if not self.quiet:
-            pbar = tqdm(total=len(groups))
-        # Group the tweets by id
-        for i, g in groups:
-            g.drop_duplicates(subset ="user_id", 
-                     keep = 'last', inplace = True) 
+    def __reformat_to_group(self, g):
+            g = g.drop_duplicates(subset ="user_id", keep = 'last') 
             g = g.reset_index(drop=True)
             min_time = dateutil.parser.parse(g['original_created_at'][0])
             g['timestamp'] = pd.to_datetime(g['created_at']).values.astype('datetime64[s]')
@@ -469,13 +492,20 @@ class BirdSpotter:
             g['time'] = g['diff'].dt.total_seconds()
             g['time'] = g['time'] - np.min(g['time'])
             g = g.sort_values(by=['time'])
-            cascades.append(g)
-            if not self.quiet:
-                pbar.update(1)
+            return g
+    
+    def __reformatCascadeDataframe(self):
+        """ Reformats the cascade dataframe for influence estimation"""
+        self.cascadeDataframe['magnitude'] = self.cascadeDataframe['follower_count']
+        cascades = []
+        self.__pprint('Reformatting cascades')
+        # Group the tweets by id
         if not self.quiet:
-            pbar.close()
-        self.cascadeDataframe = pd.concat(cascades)
-        self.cascadeDataframe = self.cascadeDataframe[['magnitude', 'time', 'user_id', 'screen_name', 'status_text', 'cascade_id','created_at', 'hashtag_entities']]
+            self.cascadeDataframe = self.cascadeDataframe.groupby('cascade_id').progress_apply(self.__reformat_to_group)
+        else:
+            self.cascadeDataframe = self.cascadeDataframe.groupby('cascade_id').apply(self.__reformat_to_group)
+        self.cascadeDataframe = self.cascadeDataframe.reset_index(drop=True)
+        self.cascadeDataframe = self.cascadeDataframe[['magnitude','cascade_id', 'time', 'user_id', 'screen_name', 'status_text','created_at', 'hashtag_entities']]
         self.cascadeDataframe.sort_values(by=['cascade_id', 'time'])
         return self.cascadeDataframe
 
@@ -525,6 +555,8 @@ class BirdSpotter:
         if not self.quiet:
             pbar.close()
         self.cascadeDataframe = pd.concat(cascades)
+        if column_name in self.featureDataframe.columns:
+            del self.featureDataframe[column_name]
         tmp = self.cascadeDataframe.groupby(['user_id']).mean()
         tmp = tmp[[column_name]]
         self.featureDataframe = self.featureDataframe.join(tmp)
@@ -568,7 +600,7 @@ class BirdSpotter:
         return self.featureDataframe
 
     def getCascadesDataFrame(self):
-        """Adds botness column and standard influence to the cascade dataframe."""
+        """Adds botness column and standard influence to the cascade dataframe and returns the cascadeDataframe"""
         tmp = self.featureDataframe[['botness','influence']]
         tmp
         self.cascadeDataframe.drop([c for c in ['botness','influence'] if c in self.cascadeDataframe.columns], axis=1, inplace=True)

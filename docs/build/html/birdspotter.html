@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -34,7 +34,8 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="birdspotter" href="modules.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -78,18 +79,25 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">birdspotter package</a><ul>
-<li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-birdspotter.BirdSpotter">birdspotter.BirdSpotter module</a></li>
-<li><a class="reference internal" href="#module-birdspotter.user_influence">birdspotter.user_influence module</a></li>
-<li><a class="reference internal" href="#module-birdspotter.utils">birdspotter.utils module</a></li>
-<li><a class="reference internal" href="#module-birdspotter">Module contents</a></li>
+              <p class="caption"><span class="caption-text">README:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="README.html"><code class="docutils literal notranslate"><span class="pre">birdspotter</span></code>: A tool to measure social attributes of Twitter users</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Modules:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">birdspotter</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">birdspotter package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-birdspotter.BirdSpotter">birdspotter.BirdSpotter module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-birdspotter.user_influence">birdspotter.user_influence module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-birdspotter.utils">birdspotter.utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-birdspotter">Module contents</a></li>
 </ul>
 </li>
 </ul>
-</div>
+</li>
+</ul>
+
             
           
         </div>
@@ -133,6 +141,8 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
+          <li><a href="modules.html">birdspotter</a> &raquo;</li>
+        
       <li>birdspotter package</li>
     
     
@@ -160,50 +170,35 @@
 <div class="section" id="module-birdspotter.BirdSpotter">
 <span id="birdspotter-birdspotter-module"></span><h2>birdspotter.BirdSpotter module<a class="headerlink" href="#module-birdspotter.BirdSpotter" title="Permalink to this headline">¶</a></h2>
 <p>birdspotter is a python package providing a toolkit to measures the social influence and botness of twitter users.</p>
-<dl class="class">
+<dl class="py class">
 <dt id="birdspotter.BirdSpotter.BirdSpotter">
-<em class="property">class </em><code class="sig-prename descclassname">birdspotter.BirdSpotter.</code><code class="sig-name descname">BirdSpotter</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">tweetLimit=None</em>, <em class="sig-param">embeddings='download'</em>, <em class="sig-param">quiet=False</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">birdspotter.BirdSpotter.</code><code class="sig-name descname">BirdSpotter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">tweetLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">embeddings</span><span class="o">=</span><span class="default_value">'download'</span></em>, <em class="sig-param"><span class="n">quiet</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Birdspotter measures the social influence and botness of twitter users.</p>
 <p>This class takes a twitter dump in (json or jsonl format) and extract metrics bot and influence metrics for the users.
 The class will download word2vec embeddings if they are not specified.
 It exposes processed data from the tweet dumps.</p>
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="birdspotter.BirdSpotter.BirdSpotter.cascadeDataframe">
-<code class="sig-name descname">cascadeDataframe</code><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.cascadeDataframe" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">cascadeDataframe</code><em class="property">: :class:`pandas.DataFrame`</em><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.cascadeDataframe" title="Permalink to this definition">¶</a></dt>
 <dd><p>A dataframe of tweets ordered by cascades and time (the column casIndex denotes which cascade each tweet belongs to)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></p>
-</dd>
-</dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="birdspotter.BirdSpotter.BirdSpotter.featureDataframe">
-<code class="sig-name descname">featureDataframe</code><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.featureDataframe" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">featureDataframe</code><em class="property">: :class:`pandas.DataFrame`</em><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.featureDataframe" title="Permalink to this definition">¶</a></dt>
 <dd><p>A dataframe of users with their respective botness and influence scores.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></p>
-</dd>
-</dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="birdspotter.BirdSpotter.BirdSpotter.hashtagDataframe">
-<code class="sig-name descname">hashtagDataframe</code><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.hashtagDataframe" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">hashtagDataframe</code><em class="property">: :class:`pandas.DataFrame`</em><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.hashtagDataframe" title="Permalink to this definition">¶</a></dt>
 <dd><p>A dataframe of the text features for hashtags.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></p>
-</dd>
-</dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="birdspotter.BirdSpotter.BirdSpotter.extractTweets">
-<code class="sig-name descname">extractTweets</code><span class="sig-paren">(</span><em class="sig-param">filePath</em>, <em class="sig-param">tweetLimit=None</em>, <em class="sig-param">embeddings='download'</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.extractTweets" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">extractTweets</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filePath</span></em>, <em class="sig-param"><span class="n">tweetLimit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">embeddings</span><span class="o">=</span><span class="default_value">'download'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.extractTweets" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extracts tweets from a json or jsonl file and generates cascade, feature and hashtag dataframes as class attributes.</p>
 <p>Note that we use the file extension to determine how to handle the file.</p>
 <dl class="field-list simple">
@@ -223,9 +218,9 @@ It exposes processed data from the tweet dumps.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="birdspotter.BirdSpotter.BirdSpotter.getBotAnnotationTemplate">
-<code class="sig-name descname">getBotAnnotationTemplate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.getBotAnnotationTemplate" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">getBotAnnotationTemplate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">'annotationTemplate.csv'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.getBotAnnotationTemplate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes a CSV with the list of users and a blank column “isbot” to be annotated.</p>
 <p>A helper function which outputs a CSV to be annotated by a human. The output is a list of users with the blank “isbot” column.</p>
 <dl class="field-list simple">
@@ -241,7 +236,7 @@ It exposes processed data from the tweet dumps.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="birdspotter.BirdSpotter.BirdSpotter.getBotness">
 <code class="sig-name descname">getBotness</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.getBotness" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds the botness of users to the feature dataframe.</p>
@@ -259,20 +254,20 @@ It exposes processed data from the tweet dumps.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="birdspotter.BirdSpotter.BirdSpotter.getCascadeMembership">
 <code class="sig-name descname">getCascadeMembership</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.getCascadeMembership" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="birdspotter.BirdSpotter.BirdSpotter.getCascadesDataFrame">
 <code class="sig-name descname">getCascadesDataFrame</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.getCascadesDataFrame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds botness column and standard influence to the cascade dataframe.</p>
+<dd><p>Adds botness column and standard influence to the cascade dataframe and returns the cascadeDataframe</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="birdspotter.BirdSpotter.BirdSpotter.getInfluenceScores">
-<code class="sig-name descname">getInfluenceScores</code><span class="sig-paren">(</span><em class="sig-param">time_decay=-6.8e-05</em>, <em class="sig-param">alpha=None</em>, <em class="sig-param">beta=1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.getInfluenceScores" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">getInfluenceScores</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span><span class="o">=</span><span class="default_value">{'alpha': None, 'beta': 1.0, 'time_decay': - 6.8e-05}</span></em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.getInfluenceScores" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds a specified influence score to feature dataframe</p>
 <p>The specified influence will appear in the returned feature df, under the column ‘influence (&lt;alpha&gt;,&lt;time_decay&gt;,&lt;beta&gt;)’.</p>
 <dl class="field-list simple">
@@ -295,9 +290,9 @@ It exposes processed data from the tweet dumps.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="birdspotter.BirdSpotter.BirdSpotter.getLabeledUsers">
-<code class="sig-name descname">getLabeledUsers</code><span class="sig-paren">(</span><em class="sig-param">out=None</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.getLabeledUsers" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">getLabeledUsers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">out</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.getLabeledUsers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a standard dataframe of users with botness and DebateNight influence scores (and other features), and optionally outputs a csv.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -315,9 +310,9 @@ It exposes processed data from the tweet dumps.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="birdspotter.BirdSpotter.BirdSpotter.loadClassifierModel">
-<code class="sig-name descname">loadClassifierModel</code><span class="sig-paren">(</span><em class="sig-param">fname</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.loadClassifierModel" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">loadClassifierModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span></em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.loadClassifierModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads the XGB booster model, from the saved XGB binary file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -326,32 +321,50 @@ It exposes processed data from the tweet dumps.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="birdspotter.BirdSpotter.BirdSpotter.setWord2VecEmbeddings">
-<code class="sig-name descname">setWord2VecEmbeddings</code><span class="sig-paren">(</span><em class="sig-param">embeddings='download'</em>, <em class="sig-param">forceReload=True</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.setWord2VecEmbeddings" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="birdspotter.BirdSpotter.BirdSpotter.loadPickledBooster">
+<code class="sig-name descname">loadPickledBooster</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span></em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.loadPickledBooster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the pickled booster model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fname</strong> (<em>str</em>) – The path to the pickled xgboost booster</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="birdspotter.BirdSpotter.BirdSpotter.process_tweet">
+<code class="sig-name descname">process_tweet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">j</span></em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.process_tweet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="birdspotter.BirdSpotter.BirdSpotter.set_word_embeddings">
+<code class="sig-name descname">set_word_embeddings</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">embeddings</span><span class="o">=</span><span class="default_value">'download'</span></em>, <em class="sig-param"><span class="n">force_reload</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.set_word_embeddings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the word2vec embeddings. The embeddings can be a path to a pickle or txt file, a mapping object or the string ‘download’ which will automatically download and use the FastText ‘wiki-news-300d-1M.vec’ if not available in the current path.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>embeddings</strong> (<em>collections.Mapping</em><em> or </em><em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – A method for loading word2vec embeddings. A path to a embeddings pickle or txt file, a mapping object, the string ‘download’, by default ‘download’. If None, it does nothing.</p></li>
-<li><p><strong>forceReload</strong> (<em>bool</em><em>, </em><em>optional</em>) – If the embeddings are already set, forceReload determines whether to update them, by default True</p></li>
+<li><p><strong>embeddings</strong> (<em>collections.Mapping</em><em> or </em><em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – A method for loading word2vec embeddings. A path to a embeddings pickle or txt file, a mapping object, or the string ‘download’, by default ‘download’. If None, it does nothing.</p></li>
+<li><p><strong>force_reload</strong> (<em>bool</em><em>, </em><em>optional</em>) – If the embeddings are already set, force_reload determines whether to update them, by default True</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="birdspotter.BirdSpotter.BirdSpotter.trainClassifierModel">
-<code class="sig-name descname">trainClassifierModel</code><span class="sig-paren">(</span><em class="sig-param">labelledDataPath</em>, <em class="sig-param">targetColumnName='isbot'</em>, <em class="sig-param">saveFileName=None</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.trainClassifierModel" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">trainClassifierModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">labelledData</span></em>, <em class="sig-param"><span class="n">targetColumnName</span><span class="o">=</span><span class="default_value">'isbot'</span></em>, <em class="sig-param"><span class="n">saveFileName</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">update</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">iterations</span><span class="o">=</span><span class="default_value">100</span></em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.BirdSpotter.BirdSpotter.trainClassifierModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Trains the bot detection classifier.</p>
 <p>Trains the bot detection classifier, using an XGB classifier.
 Due to the way XGB works, the features used are the intersection, between the features from the tweet dumps and the features from the training set.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>labelledDataPath</strong> (<em>str</em>) – A path to the data with bot labels, as either csv or pickled dataframe</p></li>
+<li><p><strong>labelledData</strong> (<em>str</em><em> or </em><em>pandas.DataFrame</em>) – A path to the data with bot labels, as either csv or pickled dataframe, or a dataframe</p></li>
 <li><p><strong>targetColumnName</strong> (<em>str</em>) – The name of the column, describing whether a user is a bot or not, by default ‘isbot’</p></li>
 <li><p><strong>saveFileName</strong> (<em>str</em><em>, </em><em>optional</em>) – The path of the file, to save the XGB model binary, which can be loaded with loadClassifierModel, by default None</p></li>
+<li><p><strong>update</strong> (<em>bool</em><em>, </em><em>optional</em>) – Determines whether data will improve current classifier or restart training, by default False</p></li>
+<li><p><strong>iterations</strong> (<em>int</em><em>, </em><em>optional</em>) – Determines the number of times the classifier training will iterate through data, by default 100</p></li>
 </ul>
 </dd>
 </dl>
@@ -362,16 +375,15 @@ Due to the way XGB works, the features used are the intersection, between the fe
 </div>
 <div class="section" id="module-birdspotter.user_influence">
 <span id="birdspotter-user-influence-module"></span><h2>birdspotter.user_influence module<a class="headerlink" href="#module-birdspotter.user_influence" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<dl class="py function">
 <dt id="birdspotter.user_influence.P">
-<code class="sig-prename descclassname">birdspotter.user_influence.</code><code class="sig-name descname">P</code><span class="sig-paren">(</span><em class="sig-param">cascade</em>, <em class="sig-param">alpha=None</em>, <em class="sig-param">r=-6.8e-05</em>, <em class="sig-param">beta=1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.user_influence.P" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">birdspotter.user_influence.</code><code class="sig-name descname">P</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cascade</span></em>, <em class="sig-param"><span class="n">r</span><span class="o">=</span><span class="default_value">- 6.8e-05</span></em>, <em class="sig-param"><span class="n">beta</span><span class="o">=</span><span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.user_influence.P" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the P matrix of a cascade</p>
 <p>The P matrix describes the stochastic retweet graph.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>cascade</strong> (<em>DataFrame</em>) – A dataframe describing a single cascade, with a time column ascending from 0, a magnitude column and index of user ids</p></li>
-<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – A float between 0 and 1, as described in the paper. If None DebateNight method is used, else spatial-decay method, by default None</p></li>
 <li><p><strong>r</strong> (<em>float</em><em>, </em><em>optional</em>) – The time-decay r parameter described in the paper, by default -0.000068</p></li>
 <li><p><strong>beta</strong> (<em>float</em><em>, </em><em>optional</em>) – A social strength hyper-parameter, by default 1.0</p></li>
 </ul>
@@ -385,9 +397,9 @@ Due to the way XGB works, the features used are the intersection, between the fe
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="birdspotter.user_influence.casIn">
-<code class="sig-prename descclassname">birdspotter.user_influence.</code><code class="sig-name descname">casIn</code><span class="sig-paren">(</span><em class="sig-param">cascade</em>, <em class="sig-param">time_decay=-6.8e-05</em>, <em class="sig-param">alpha=None</em>, <em class="sig-param">beta=1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.user_influence.casIn" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">birdspotter.user_influence.</code><code class="sig-name descname">casIn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cascade</span></em>, <em class="sig-param"><span class="n">time_decay</span><span class="o">=</span><span class="default_value">- 6.8e-05</span></em>, <em class="sig-param"><span class="n">alpha</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">beta</span><span class="o">=</span><span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.user_influence.casIn" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes influence in one cascade</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -406,9 +418,9 @@ Due to the way XGB works, the features used are the intersection, between the fe
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="birdspotter.user_influence.influence">
-<code class="sig-prename descclassname">birdspotter.user_influence.</code><code class="sig-name descname">influence</code><span class="sig-paren">(</span><em class="sig-param">p</em>, <em class="sig-param">alpha=None</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.user_influence.influence" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">birdspotter.user_influence.</code><code class="sig-name descname">influence</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p</span></em>, <em class="sig-param"><span class="n">alpha</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.user_influence.influence" title="Permalink to this definition">¶</a></dt>
 <dd><p>Estimates user influence</p>
 <p>This function compute the user influence and store it in matirx m_ij</p>
 <dl class="field-list simple">
@@ -430,34 +442,34 @@ Due to the way XGB works, the features used are the intersection, between the fe
 </div>
 <div class="section" id="module-birdspotter.utils">
 <span id="birdspotter-utils-module"></span><h2>birdspotter.utils module<a class="headerlink" href="#module-birdspotter.utils" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<dl class="py function">
 <dt id="birdspotter.utils.getSource">
-<code class="sig-prename descclassname">birdspotter.utils.</code><code class="sig-name descname">getSource</code><span class="sig-paren">(</span><em class="sig-param">sourcestring</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.utils.getSource" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">birdspotter.utils.</code><code class="sig-name descname">getSource</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sourcestring</span></em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.utils.getSource" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="birdspotter.utils.getTextFeatures">
-<code class="sig-prename descclassname">birdspotter.utils.</code><code class="sig-name descname">getTextFeatures</code><span class="sig-paren">(</span><em class="sig-param">key</em>, <em class="sig-param">text</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.utils.getTextFeatures" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">birdspotter.utils.</code><code class="sig-name descname">getTextFeatures</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em>, <em class="sig-param"><span class="n">text</span></em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.utils.getTextFeatures" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="birdspotter.utils.getURLs">
-<code class="sig-prename descclassname">birdspotter.utils.</code><code class="sig-name descname">getURLs</code><span class="sig-paren">(</span><em class="sig-param">string</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.utils.getURLs" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">birdspotter.utils.</code><code class="sig-name descname">getURLs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">string</span></em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.utils.getURLs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="birdspotter.utils.grep">
-<code class="sig-prename descclassname">birdspotter.utils.</code><code class="sig-name descname">grep</code><span class="sig-paren">(</span><em class="sig-param">sourcestring</em>, <em class="sig-param">pattern</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.utils.grep" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">birdspotter.utils.</code><code class="sig-name descname">grep</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sourcestring</span></em>, <em class="sig-param"><span class="n">pattern</span></em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.utils.grep" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="birdspotter.utils.hourofweekday">
-<code class="sig-prename descclassname">birdspotter.utils.</code><code class="sig-name descname">hourofweekday</code><span class="sig-paren">(</span><em class="sig-param">datestring</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.utils.hourofweekday" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">birdspotter.utils.</code><code class="sig-name descname">hourofweekday</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">datestring</span></em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.utils.hourofweekday" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="birdspotter.utils.parse">
-<code class="sig-prename descclassname">birdspotter.utils.</code><code class="sig-name descname">parse</code><span class="sig-paren">(</span><em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.utils.parse" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">birdspotter.utils.</code><code class="sig-name descname">parse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#birdspotter.utils.parse" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -471,6 +483,13 @@ Due to the way XGB works, the features used are the intersection, between the fe
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="modules.html" class="btn btn-neutral float-left" title="birdspotter" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

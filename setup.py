@@ -28,7 +28,8 @@ setup(
             'six',
             'sklearn',
             'ijson',
-            'xgboost==0.81'
+            'xgboost==0.81',
+            'swifter==0.304'
         ],
         classifiers=[
             'Development Status :: 4 - Beta',

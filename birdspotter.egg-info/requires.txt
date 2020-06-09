@@ -11,3 +11,4 @@ six
 sklearn
 ijson
 xgboost==0.81
+swifter==0.304
