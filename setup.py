@@ -3,13 +3,13 @@ from distutils.core import setup
 setup(
         name = 'birdspotter',
         packages = ['birdspotter'],
-        version = '0.1.5b1',
+        version = '0.1.6b1',
         license = 'MIT',
         description = 'A package to measure the influence and botness of twitter users, from twitter dumps',
         author = 'Rohit Ram',
         author_email = 'rohitram96@gmail.com',
         url = 'https://github.com/behavioral-ds/BirdSpotter',
-        download_url = 'https://github.com/behavioral-ds/BirdSpotter/archive/0.1.5b1.tar.gz',
+        download_url = 'https://github.com/behavioral-ds/BirdSpotter/archive/0.1.6b1.tar.gz',
         keywords = ['twitter', 'influence', 'botness', 'birdspotter', 'dumps'],
         include_package_data=True,
         scripts=['bin/birdspotter'],
@@ -28,8 +28,7 @@ setup(
             'six',
             'sklearn',
             'ijson',
-            'xgboost==0.81',
-            'swifter==0.304'
+            'xgboost==0.81'
         ],
         classifiers=[
             'Development Status :: 4 - Beta',

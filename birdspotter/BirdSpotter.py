@@ -3,6 +3,7 @@ birdspotter is a python package providing a toolkit to measures the social influ
 """
 
 import simplejson
+import ijson
 from tqdm import tqdm
 import wget
 import zipfile
@@ -10,20 +11,17 @@ import pandas as pd
 import pickle as pk
 import numpy as np
 from birdspotter.utils import *
-import traceback
 import collections
 from xgboost.sklearn import XGBClassifier
 import xgboost as xgb
 import os
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.model_selection import RandomizedSearchCV
 import dateutil
 from birdspotter.user_influence import P, influence
 import itertools
-import ijson
 import multiprocessing as mp
-
-tqdm.pandas()
 
 class BirdSpotter:
     """Birdspotter measures the social influence and botness of twitter users.
@@ -79,11 +77,11 @@ class BirdSpotter:
             return
         elif isinstance(embeddings, str) and embeddings == 'download':
             if os.path.isfile('./wiki-news-300d-1M.vec'):
-                self.__pprint("Loading Fasttext wiki-news-300d-1M.vec Word2Vec Embeddings...")
+                # self.__pprint("Loading Fasttext wiki-news-300d-1M.vec Word2Vec Embeddings...")
                 with open('./wiki-news-300d-1M.vec',"r") as f:
                     model = {}
                     if not self.quiet:
-                        pbar = tqdm(total=1000000)
+                        pbar = tqdm(total=1000000, desc="Loading Fasttext wiki-news-300d-1M.vec Word2Vec Embeddings")
                     for line in f:
                         splitLine = line.split()
                         word = splitLine[0]
@@ -94,7 +92,7 @@ class BirdSpotter:
                     if not self.quiet:
                         pbar.close()
                     self.word_embeddings = model
-                self.__pprint("Finished loading Word2Vec Embeddings")
+                # self.__pprint("Finished loading Word2Vec Embeddings")
             else:
                 try:
                     self.__pprint("Downloading Fasttext embeddings")
@@ -102,11 +100,11 @@ class BirdSpotter:
                     self.__pprint('\n')
                     with zipfile.ZipFile(filename, 'r') as zip_ref:
                         zip_ref.extractall('./')
-                    self.__pprint("Loading downloaded Fasttext wiki-news-300d-1M.vec Word2Vec Embeddings...")
+                    # self.__pprint("Loading downloaded Fasttext wiki-news-300d-1M.vec Word2Vec Embeddings...")
                     with open('./wiki-news-300d-1M.vec',"r") as f:
                         model = {}
                         if not self.quiet:
-                            pbar = tqdm(total=1000000)
+                            pbar = tqdm(total=1000000, desc="Loading downloaded Fasttext wiki-news-300d-1M.vec Word2Vec Embeddings")
                         for line in f:
                             splitLine = line.split()
                             word = splitLine[0]
@@ -117,7 +115,7 @@ class BirdSpotter:
                         if not self.quiet:
                             pbar.close()
                         self.word_embeddings = model
-                    self.__pprint("Finished loading Word2Vec Embeddings")
+                    # self.__pprint("Finished loading Word2Vec Embeddings")
                 except Exception as e:
                     print(e)
         elif isinstance(embeddings, str):
@@ -189,8 +187,6 @@ class BirdSpotter:
         temp_user['years_on_twitter'] = (datetime(n.year, n.month, n.day) - datetime.strptime(j['user']['created_at'], '%a %b %d %H:%M:%S +0000 %Y')).days/365
         temp_user['statuses_rate'] = (temp_user['statuses_count'] + 1)/(temp_user['years_on_twitter'] + .001)
         temp_user['tweets_to_followers'] = (temp_user['statuses_count'] + 1)/(temp_user['followers_count'] + 1)
-        temp_user['retweet_count'] = j['retweet_count']
-        temp_user['favorite_count'] = j['favorite_count']
         temp_user['favourites_count'] = j['user']['favourites_count']
 
         temp_tweet.update(getTextFeatures('status_text',temp_text))
@@ -198,6 +194,8 @@ class BirdSpotter:
         temp_tweet['n_retweets'] = 1 if 'retweeted_status' in j else 0
         temp_tweet['n_quotes'] = 1 if 'quoted_status_id' in j else 0
         temp_tweet['n_timeofday'] = hourofweekday(j['created_at'])
+        temp_tweet['retweet_count'] = j['retweet_count']
+        temp_tweet['favorite_count'] = j['favorite_count']
         temp_tweet.update(getSource(j['source']))
 
         res = (temp_user, temp_tweet, temp_content,  temp_description,  temp_cascade)
@@ -222,7 +220,7 @@ class BirdSpotter:
         DataFrame
             A dataframe of user's botness and influence scores (and other features).
         """        
-        self.__pprint("Starting Tweet Extraction")
+        # self.__pprint("Starting Tweet Extraction")
 
         _,fileextension = os.path.splitext(filePath)
         raw_tweets = []
@@ -253,7 +251,7 @@ class BirdSpotter:
             w2v_content_list = []
             w2v_description_list = []
             cascade_list = []
-            for temp_user, temp_tweet, temp_content,  temp_description,  temp_cascade in itertools.chain(*map(self.process_tweet, tqdm(raw_tweets))):
+            for temp_user, temp_tweet, temp_content,  temp_description,  temp_cascade in itertools.chain(*map(self.process_tweet, tqdm(raw_tweets, desc="Extracting raw tweets"))):
                 user_list.append(temp_user)
                 tweet_list.append(temp_tweet)
                 w2v_content_list.append(temp_content)
@@ -265,11 +263,13 @@ class BirdSpotter:
         userDataframe = userDataframe[~userDataframe.index.duplicated(keep='last')]
         
         tweetDataframe = pd.DataFrame(tweet_list).fillna(0).set_index('user_id')
+        n_tweets = tweetDataframe['n_tweets'].groupby('user_id').sum()
         n_retweets = tweetDataframe['n_retweets'].groupby('user_id').sum()
         n_quoted = tweetDataframe['n_quotes'].groupby('user_id').sum()
         tweetDataframe = tweetDataframe.groupby('user_id').mean()
         tweetDataframe['n_retweets'] = n_retweets
         tweetDataframe['n_quotes'] = n_quoted
+        tweetDataframe['n_tweets'] = n_tweets
 
         self.cascadeDataframe = pd.DataFrame(cascade_list).fillna(0)
         self.__reformatCascadeDataframe()
@@ -285,7 +285,7 @@ class BirdSpotter:
             self.featureDataframe = self.featureDataframe.join(w2vDataframe)
         
         #Computes the features for all the hashtags. Is currently not protected from namespace errors.
-        self.hashtagDataframe = self.__computeHashtagFeatures(contentDataframe)
+        self.hashtagDataframe = self.__computeHashtagFeatures(self.cascadeDataframe)
         self.featureDataframe = self.featureDataframe.join(self.hashtagDataframe, rsuffix='_hashtag')
         self.featureDataframe = self.featureDataframe[~self.featureDataframe.index.duplicated()]
         return self.featureDataframe
@@ -310,18 +310,19 @@ class BirdSpotter:
         csv_data.to_csv(filename)
         return csv_data
 
-    def __computeHashtagFeatures(self, contentdf):
+    def __computeHashtagFeatures(self, cascadeDataframe):
         """Computes the hashtag tfidf features as a dataframe"""
-        hashtagSeries = contentdf['status_text'].str.findall(r'(?<!\w)#\w+').str.join(" ").str.replace("#","")
+        # hashtagSeries = contentdf['status_text'].str.findall(r'(?<!\w)#\w+').str.join(" ").str.replace("#","")
+        tqdm.pandas(desc='Processing hashtag entities')
+        hashtagSeries = cascadeDataframe.groupby('user_id').progress_apply(lambda g: " ".join(g['hashtag_entities'].apply(lambda x: " ".join(x))))
         userIndex = hashtagSeries.index
         crop = hashtagSeries.tolist()
-        vectorizer = CountVectorizer()
+        vectorizer = CountVectorizer(max_features=1000)
         X = vectorizer.fit_transform(crop)
         transformer = TfidfTransformer(smooth_idf=False)
         tfidf = transformer.fit(X).transform(X)
-        column_names = vectorizer.get_feature_names()
+        column_names =  [x + '_hashtag' for x in vectorizer.get_feature_names()]
         hashtagDataframe = pd.DataFrame.sparse.from_spmatrix(tfidf, columns=column_names, index=userIndex)
-        print(hashtagDataframe.dtypes)
         return hashtagDataframe
 
     def __computeVectors(self, contentdf, descriptiondf):
@@ -391,7 +392,7 @@ class BirdSpotter:
         with open(fname, 'rb') as rf:
             return pk.load(rf)
 
-    def trainClassifierModel(self, labelledData, targetColumnName='isbot', saveFileName=None, update=False, iterations=100):
+    def trainClassifierModel(self, labelledData, targetColumnName='isbot', saveFileName=None, update=False, iterations=100, hyper_parameter_search=True):
         """Trains the bot detection classifier.
 
         Trains the bot detection classifier, using an XGB classifier. 
@@ -409,19 +410,10 @@ class BirdSpotter:
             Determines whether data will improve current classifier or restart training, by default False
         iterations : int, optional
             Determines the number of times the classifier training will iterate through data, by default 100
+        hyper_parameter_search : bool, optional
+            Determines if the hyper-parameters of the classifier should be search or if the default parameters will be used. The search may be time-consuming for large training datasets and doesn't work with update flag.
 
         """
-        params = {
-        'learning_rate' :0.1,
-        'n_estimators':80,
-        'max_depth':5, #16
-        'subsample':0.6,
-        'colsample_bytree':1,
-        'objective': 'binary:logistic',
-        'n_jobs':10,
-        'silent':True,
-        'seed' :27
-        }
         if isinstance(labelledData, str):
             _,fileextension = os.path.splitext(labelledData)
             if fileextension == '.csv':
@@ -439,13 +431,41 @@ class BirdSpotter:
             del botrnot[targetColumnName]
         else:
             raise Exception("The target column was not specified and cannot be found in the data. Please specify your target column accordingly.")
+            
+            
+        params = {
+            'learning_rate' :0.1,
+            'n_estimators':80,
+            'max_depth':5, #16
+            'subsample':0.6,
+            'colsample_bytree':1,
+            'objective': 'binary:logistic',
+            'n_jobs':10,
+            'silent':True,
+            'seed' :27
+        }
+        no_features = len(botrnot.columns)
+        tuned_parameters = {'n_estimators' : list(range(2, 300, 2)), 
+                               'max_depth' : list(range(2, 100, 2)), 
+                               'learning_rate' : [0.0001, 0.001, 0.01, 0.1],
+                               'subsample':[0.6,0.7,0.75,0.8,0.85,0.9,0.95,1.0]
+                              }
         if update:
-            botrnot.reindex(columns=bs.booster.feature_names)
+            botrnot.reindex(columns=self.booster.feature_names)
             update = xgb.DMatrix(botrnot.values, botTarget.values, feature_names=botrnot.columns.values)
             self.booster.update(update, iterations)
         else:
-            train = xgb.DMatrix(botrnot.values, botTarget.values, feature_names=botrnot.columns.values)
-            self.booster = xgb.train(params, train, iterations)
+            if hyper_parameter_search:
+                clf = RandomizedSearchCV(estimator = XGBClassifier(), 
+                                         param_distributions = tuned_parameters, 
+                                         n_jobs = -1,
+                                         n_iter=100,
+                                         cv = 5)
+                clf.fit(pd.DataFrame(data=botrnot.values,columns=botrnot.columns, index=botrnot.index), botTarget)
+                self.booster = clf.best_estimator_.get_booster()
+            else:
+                train = xgb.DMatrix(botrnot.values, botTarget.values, feature_names=botrnot.columns.values)
+                self.booster = xgb.train(params, train, iterations)
         if saveFileName is not None:
             self.booster.save_model(saveFileName)
 
@@ -497,8 +517,8 @@ class BirdSpotter:
     def __reformatCascadeDataframe(self):
         """ Reformats the cascade dataframe for influence estimation"""
         self.cascadeDataframe['magnitude'] = self.cascadeDataframe['follower_count']
-        cascades = []
-        self.__pprint('Reformatting cascades')
+        # self.__pprint('Reformatting cascades')
+        tqdm.pandas(desc='Reformatting cascades')
         # Group the tweets by id
         if not self.quiet:
             self.cascadeDataframe = self.cascadeDataframe.groupby('cascade_id').progress_apply(self.__reformat_to_group)
@@ -540,9 +560,9 @@ class BirdSpotter:
             raise Exception("Tweets haven't been extracted yet")
         groups = self.cascadeDataframe.groupby('cascade_id')
         cascades = []
-        self.__pprint("Getting influence scores of users, with alpha of " + str(alpha) + ", with time decay of " + str(time_decay) + ", with beta of " + str(beta))
+        # self.__pprint("Getting influence scores of users, with alpha of " + str(alpha) + ", with time decay of " + str(time_decay) + ", with beta of " + str(beta))
         if not self.quiet:
-            pbar = tqdm(total=len(groups))
+            pbar = tqdm(total=len(groups), desc="Getting influence scores of users, with alpha of " + str(alpha) + ", with time decay of " + str(time_decay) + ", with beta of " + str(beta))
         for i, g in groups:
             g = g.reset_index(drop=True)
             p = P(cascade=g, r=time_decay, beta=beta)
