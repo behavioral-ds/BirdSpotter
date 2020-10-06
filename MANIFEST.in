@@ -5,3 +5,4 @@ include birdspotter/BirdSpotter.py
 include birdspotter/__init__.py
 include birdspotter/utils.py
 include birdspotter/data/oversampled_booster.pickle
+include birdspotter/data/bot_repository_booster.pickle

@@ -77,7 +77,6 @@ class BirdSpotter:
             return
         elif isinstance(embeddings, str) and embeddings == 'download':
             if os.path.isfile('./wiki-news-300d-1M.vec'):
-                # self.__pprint("Loading Fasttext wiki-news-300d-1M.vec Word2Vec Embeddings...")
                 with open('./wiki-news-300d-1M.vec',"r") as f:
                     model = {}
                     if not self.quiet:
@@ -92,7 +91,6 @@ class BirdSpotter:
                     if not self.quiet:
                         pbar.close()
                     self.word_embeddings = model
-                # self.__pprint("Finished loading Word2Vec Embeddings")
             else:
                 try:
                     self.__pprint("Downloading Fasttext embeddings")
@@ -100,7 +98,6 @@ class BirdSpotter:
                     self.__pprint('\n')
                     with zipfile.ZipFile(filename, 'r') as zip_ref:
                         zip_ref.extractall('./')
-                    # self.__pprint("Loading downloaded Fasttext wiki-news-300d-1M.vec Word2Vec Embeddings...")
                     with open('./wiki-news-300d-1M.vec',"r") as f:
                         model = {}
                         if not self.quiet:
@@ -115,7 +112,6 @@ class BirdSpotter:
                         if not self.quiet:
                             pbar.close()
                         self.word_embeddings = model
-                    # self.__pprint("Finished loading Word2Vec Embeddings")
                 except Exception as e:
                     print(e)
         elif isinstance(embeddings, str):
@@ -220,7 +216,6 @@ class BirdSpotter:
         DataFrame
             A dataframe of user's botness and influence scores (and other features).
         """        
-        # self.__pprint("Starting Tweet Extraction")
 
         _,fileextension = os.path.splitext(filePath)
         raw_tweets = []
@@ -237,14 +232,6 @@ class BirdSpotter:
                 raw_tweets = get_islice(ijson.items(f, 'item'))
             else:
                     raise Exception('Not a valid tweet dump. Needs to be either jsonl or json, with the extension explicit.')
-                # original_tweets = [j['retweeted_status'] for j in raw_tweets if 'retweeted_status' in j]
-            # def run_in_parallel(func, seq):
-            #     try:
-            #         cpus = mp.cpu_count()
-            #     except NotImplementedError:
-            #         cpus = 4   # arbitrary default
-            #     with mp.Pool(processes=cpus) as pool:
-            #         return pool.apply(func, seq)
             
             user_list = []
             tweet_list = []
@@ -312,7 +299,6 @@ class BirdSpotter:
 
     def __computeHashtagFeatures(self, cascadeDataframe):
         """Computes the hashtag tfidf features as a dataframe"""
-        # hashtagSeries = contentdf['status_text'].str.findall(r'(?<!\w)#\w+').str.join(" ").str.replace("#","")
         tqdm.pandas(desc='Processing hashtag entities')
         hashtagSeries = cascadeDataframe.groupby('user_id').progress_apply(lambda g: " ".join(g['hashtag_entities'].apply(lambda x: " ".join(x))))
         userIndex = hashtagSeries.index
@@ -469,6 +455,24 @@ class BirdSpotter:
         if saveFileName is not None:
             self.booster.save_model(saveFileName)
 
+    def getLabels(self):
+        """Adds labels of users to the feature dataframe. 
+        
+        It requires the tweets be extracted and the classifier be trained, otherwise exceptions are raised respectively.
+        
+        Returns
+        -------
+        DataFrame
+            The current feature dataframe of users, with associated label scores appended.
+        
+        Raises
+        ------
+        Exception
+            Tweets haven't been extracted yet. Need to run extractTweets.
+        """
+        return getBotness(self)
+    
+    
     def getBotness(self):
         """Adds the botness of users to the feature dataframe. 
         
@@ -485,7 +489,7 @@ class BirdSpotter:
             Tweets haven't been extracted yet. Need to run extractTweets.
         """        
         if not hasattr(self, 'booster'):
-            self.booster = self.loadPickledBooster(os.path.join(os.path.dirname(__file__), 'data', 'oversampled_booster.pickle'))
+            self.booster = self.loadPickledBooster(os.path.join(os.path.dirname(__file__), 'data', 'bot_repository_booster.pickle'))
         if not hasattr(self, 'featureDataframe'):
             raise Exception("Tweets haven't been extracted yet")
         # Remove botness if it's already in the dataframe
@@ -604,7 +608,7 @@ class BirdSpotter:
         if not hasattr(self, 'featureDataframe'):
             raise Exception("Tweets haven't been extracted yet")
         if not hasattr(self, 'booster'):
-            self.booster = self.loadPickledBooster(os.path.join(os.path.dirname(__file__), 'data', 'oversampled_booster.pickle'))
+            self.booster = self.loadPickledBooster(os.path.join(os.path.dirname(__file__), 'data', 'bot_repository_booster.pickle'))
         if 'botness' not in self.featureDataframe.columns:
             self.getBotness()
         if 'influence' not in self.featureDataframe.columns:

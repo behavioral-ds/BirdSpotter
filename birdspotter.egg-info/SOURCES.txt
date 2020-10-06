@@ -12,4 +12,5 @@ birdspotter.egg-info/SOURCES.txt
 birdspotter.egg-info/dependency_links.txt
 birdspotter.egg-info/requires.txt
 birdspotter.egg-info/top_level.txt
+birdspotter/data/bot_repository_booster.pickle
 birdspotter/data/oversampled_booster.pickle
