@@ -33,6 +33,8 @@ labeledUsers = bs.getLabeledUsers(out='./output.csv')
 After extracting the tweets, `getLabeledUsers()` returns a `pandas` dataframe with the influence and botness labels of users and writes a `csv` file if a path is specified i.e. `./output.csv`.
 
  ##### `birdspotter` relies on the [Fasttext word embeddings](https://fasttext.cc/docs/en/english-vectors.html) [wiki-news-300d-1M.vec](https://dl.fbaipublicfiles.com/fasttext/vectors-english/wiki-news-300d-1M.vec.zip), which will automatically be downloaded if not available in the current directory (`./`) or a relative data folder (`./data/`).
+ 
+Full documentation can be found [here](https://birdspotter.readthedocs.io/).
 
 ### Get Cascades Data
 After extracting the tweets, the retweet cascades are accessible by using:
