@@ -137,6 +137,22 @@ class BirdSpotter:
             self.word_embeddings = embeddings
     
     def process_tweet(self, j):
+        """Extracts the relevant attributes from a tweet json object.
+
+        Parameters
+        ----------
+        j : dict
+            An object representing the tweet data.
+        
+        Returns
+        -------
+        list
+            A list of tuples representing the tweet information for both the original tweet and the retweet, if applicable.
+        """
+
+        if 'text' not in j.keys() and 'full_text' not in j.keys():
+            # This is the case where a line is valid json, but not a valid tweet json.
+            return []
         temp_user = {}
         temp_tweet = {}
         temp_text = (j['text'] if 'text' in j.keys() else j['full_text'])

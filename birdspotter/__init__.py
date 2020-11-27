@@ -1,3 +1,3 @@
-__version__ = '0.1.5b1'
+__version__ = '0.1.6b1'
 
 from birdspotter.BirdSpotter import BirdSpotter
