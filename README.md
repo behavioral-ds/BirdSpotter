@@ -10,12 +10,11 @@
 
 ## References:
 ```
+Ram, R., Kong, Q. and Rizoiu, M.A., 2020. Birdspotter: A Tool for Analyzing and Labeling Twitter Users. arXiv preprint arXiv:2012.02370.
+```
+```
 Rizoiu, M.A., Graham, T., Zhang, R., Zhang, Y., Ackland, R. and Xie, L. # DebateNight: The Role and Influence of Socialbots on Twitter During the 1st 2016 US Presidential Debate. In Twelfth International AAAI Conference on Web and Social Media (ICWSM'18), 2018. https://arxiv.org/abs/1802.09808
 ```
-```
-Ram, R., & Rizoiu, M.-A. A social science-grounded approach for quantifying online social influence. In Australian Social Network Analysis Conference (ASNAC'19) (p. 2). Adelaide, Australia, 2019.
-```
-
 ## Installation
 `pip3 install birdspotter`
 ##### `birdspotter` requires a python version `>=3`.
