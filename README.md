@@ -10,7 +10,7 @@
 
 ## References:
 ```
-Ram, R., Kong, Q. and Rizoiu, M.A., 2020. Birdspotter: A Tool for Analyzing and Labeling Twitter Users. arXiv preprint arXiv:2012.02370.
+Rohit Ram, Quyu Kong, and Marian-Andrei Rizoiu. 2021. Birdspotter: A Tool for Analyzing and Labeling Twitter Users. In Proceedings of the Fourteenth ACM International Conference on Web Search and Data Mining (WSDM ’21), March 8–12, 2021, Virtual Event, Israel. ACM, New York, NY, USA, 4 pages. https://doi.org/10.1145/3437963.3441695
 ```
 ```
 Rizoiu, M.A., Graham, T., Zhang, R., Zhang, Y., Ackland, R. and Xie, L. # DebateNight: The Role and Influence of Socialbots on Twitter During the 1st 2016 US Presidential Debate. In Twelfth International AAAI Conference on Web and Social Media (ICWSM'18), 2018. https://arxiv.org/abs/1802.09808
